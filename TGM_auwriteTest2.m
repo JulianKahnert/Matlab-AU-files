@@ -6,54 +6,39 @@
 clear;
 close all;
 clc;
+fclose('all');
 
 %------------Your script starts here-------- 
 
-szName_wav      = 'KriegDerWeltenShort.wav';
+%% generate test signal
+fs      = 44100;
+f0      = 1/5;
+dur_sec = 5;
 
-
-%% generate paths
-szPath          = fileparts(which(mfilename('fullpath')));
-szPath_tmp      = fullfile(szPath,'temp');
+vTime   = linspace(0,dur_sec,dur_sec*fs);
+vSig    = 0.9*sin(2*pi*f0*vTime);
+vSig    = vSig(:);
+% plot(vTime,vSig)
+szPath_tmp = fullfile(fileparts(which(mfilename('fullpath'))),'temp');
 if ~exist(szPath_tmp,'dir')
     mkdir(szPath_tmp);
 end
-cd(szPath)
-szPath_wav      = fullfile(szPath,szName_wav);
-szPath_au_ref   = fullfile(szPath_tmp,[szName_wav(1:end-4) '_ref.au']);
-szPath_au_new   = fullfile(szPath_tmp,[szName_wav(1:end-4) '_TGM.au']);
 
 
-%% generate reference-data
+%% standard writing test
 
-% Include usr/local binaries (necessary on OSX for brew versions)
-PATH = getenv('PATH');
-setenv('PATH', [PATH ':/usr/local/bin']);
-
-szCmd = sprintf('"ffmpeg" -y -i "%s" "%s"', ...
-                    szPath_wav,szPath_au_ref);
-[bError, msg] = system(szCmd);
+nChans  = 1;
+szPath_1= fullfile(szPath_tmp,'test_01.au');
+TGM_auwrite(szPath_1,repmat(vSig,1,nChans),fs)
+stInfo = audioinfo(szPath_1);
 
 
-%% generate testing-data
+%% standard writing test - two channels
 
-[vSig,fs] = audioread(szPath_wav);
-TGM_auwrite(szPath_au_new,vSig,fs)
-
-
-
-%% testing
-
-[vSig_ref,fs_ref] = audioread(szPath_au_ref);
-[vSig_new,fs_new] = audioread(szPath_au_new);
-
-if any(vSig_ref ~= vSig_new)
-    plot(vSig_ref - vSig_new)
-    error('ATTENTION: Saved vectors are not identical!!')
-else
-    fprintf('Reference and new signal are identical!\n')
-end
-
+nChans  = 2;
+szPath_2= fullfile(szPath_tmp,'test_02.au');
+TGM_auwrite(szPath_2,repmat(vSig,1,nChans),fs)
+stInfo2 = audioinfo(szPath_2);
 
 %--------------------Licence ---------------------------------------------
 % Copyright (c) <2015> Julian Kahnert
