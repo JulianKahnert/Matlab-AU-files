@@ -1,18 +1,16 @@
 % Script to test the function [outParam]=TGM_auwrite(inParam).m 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF 
 % Version History:
-% Ver. 0.01 initial create (empty) 29-Apr-2015 			 Initials (eg. JB)
+% Ver. 0.01 initial create 									 29-Apr-2015 JK
 
 clear;
 close all;
 clc;
 
-%------------Your script starts here-------- 
-
-szName_wav      = 'KriegDerWeltenShort.wav';
-
 
 %% generate paths
+
+szName_wav      = 'KriegDerWeltenShort.wav';
 szPath          = fileparts(which(mfilename('fullpath')));
 szPath_tmp      = fullfile(szPath,'temp');
 if ~exist(szPath_tmp,'dir')
@@ -30,8 +28,7 @@ szPath_au_new   = fullfile(szPath_tmp,[szName_wav(1:end-4) '_TGM.au']);
 PATH = getenv('PATH');
 setenv('PATH', [PATH ':/usr/local/bin']);
 
-szCmd = sprintf('"ffmpeg" -y -i "%s" "%s"', ...
-                    szPath_wav,szPath_au_ref);
+szCmd = sprintf('"ffmpeg" -y -i "%s" "%s"',szPath_wav,szPath_au_ref);
 [bError, msg] = system(szCmd);
 
 
@@ -39,7 +36,6 @@ szCmd = sprintf('"ffmpeg" -y -i "%s" "%s"', ...
 
 [vSig,fs] = audioread(szPath_wav);
 TGM_auwrite(szPath_au_new,vSig,fs)
-
 
 
 %% testing

@@ -61,7 +61,7 @@ fwrite(FID,24,'uint32');                        % 1 data offset
 fwrite(FID,hex2dec(szDataSize),'uint32');       % 2 data size
 fwrite(FID,iEncoding,'uint32');                 % 3 encoding
 fwrite(FID,fs,'uint32');                        % 4 sample rate
-fwrite(FID,iCH,'uint32');                    % 5 channels
+fwrite(FID,iCH,'uint32');                       % 5 channels
 
 
 %% write data
