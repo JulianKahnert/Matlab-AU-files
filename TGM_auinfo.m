@@ -33,16 +33,17 @@ FID             = fopen(szFilename,'r');
 if FID == -1
     error('Can not read file. Is the path correct?')
 end
-szMagicNumber   = fread(FID,4,'*char',0,'b');
-iDataOffset     = fread(FID,1,'uint32',0,'b');
-iDataSize       = fread(FID,1,'uint32',0,'b');
-iEncoding       = fread(FID,1,'uint32',0,'b');
-iSampleRate     = fread(FID,1,'uint32',0,'b');
-iChannels       = fread(FID,1,'uint32',0,'b');
+szMagicNumber   = fread(FID,4,'*char',0,'b');   % 0 magic number
+iDataOffset     = fread(FID,1,'uint32',0,'b');  % 1 data offset
+iDataSize       = fread(FID,1,'uint32',0,'b');  % 2 data size
+iEncoding       = fread(FID,1,'uint32',0,'b');  % 3 encoding
+iSampleRate     = fread(FID,1,'uint32',0,'b');  % 4 sample rate
+iChannels       = fread(FID,1,'uint32',0,'b');  % 5 channels
 
 szPath          = fopen(FID);
 stFile          = dir(szPath);
 iDataSize_new   = stFile.bytes - iDataOffset;
+fclose(FID);
 
 
 %% show warnings if the data is corrupt
