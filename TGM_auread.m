@@ -3,7 +3,7 @@ function [y, fs] = TGM_auread(szFilename,vInterval_smp)
 %
 %--------------------------------------------------------------------------
 %
-% stInfo = TGM_auwrite(szFilename,y,fs)
+% [y, fs] = TGM_auwrite(szFilename,vInterval_smp)
 %
 %
 % szFilename:   String which contains the name of the au-file, that should
@@ -66,6 +66,8 @@ iDataSize_B     = stFile.bytes - iDataOffset_B;
 if iEncoding == 3
     iBitsPerSample  = 16;
     szFormat        = 'int16';
+else
+	error('This encoding typ is currently not supported.')
 end
 
 

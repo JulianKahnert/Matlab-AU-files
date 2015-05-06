@@ -3,7 +3,7 @@ function [] = TGM_auwrite(szFilename,y,fs)
 %
 %--------------------------------------------------------------------------
 %
-% stInfo = TGM_auwrite(szFilename,y,fs)
+% [] = TGM_auwrite(szFilename,y,fs)
 %
 %
 % szFilename:   String which contains the name of the au-file, that should

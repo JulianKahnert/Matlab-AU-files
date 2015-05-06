@@ -3,7 +3,7 @@ function [stInfo] = TGM_auinfo(szFilename)
 %
 %--------------------------------------------------------------------------
 %
-% stInfo = TGM_auinfo(szFilename)
+% [stInfo] = TGM_auinfo(szFilename)
 %
 %
 % szFilename:   String which contains the name of the au-file. If a path is
