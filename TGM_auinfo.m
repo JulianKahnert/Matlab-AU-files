@@ -34,11 +34,11 @@ if FID == -1
     error('Can not read file. Is the path correct?')
 end
 szMagicNumber   = fread(FID,4,'*char',0,'b');   % 0 magic number
-iDataOffset     = fread(FID,1,'uint32',0,'b');  % 1 data offset
-iDataSize       = fread(FID,1,'uint32',0,'b');  % 2 data size
-iEncoding       = fread(FID,1,'uint32',0,'b');  % 3 encoding
-iSampleRate     = fread(FID,1,'uint32',0,'b');  % 4 sample rate
-iChannels       = fread(FID,1,'uint32',0,'b');  % 5 channels
+iDataOffset     = fread(FID,1,'int32',0,'b');  % 1 data offset
+iDataSize       = fread(FID,1,'int32',0,'b');  % 2 data size
+iEncoding       = fread(FID,1,'int32',0,'b');  % 3 encoding
+iSampleRate     = fread(FID,1,'int32',0,'b');  % 4 sample rate
+iChannels       = fread(FID,1,'int32',0,'b');  % 5 channels
 
 szPath          = fopen(FID);
 stFile          = dir(szPath);
