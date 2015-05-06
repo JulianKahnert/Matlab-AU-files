@@ -1,25 +1,32 @@
-function []=TGM_auwrite(szName,y,fs)
-% function to do something usefull (fill out)
-% Usage [outParam]=TGM_auwrite(inParam)
+function [] = TGM_auwrite(szFilename,y,fs)
+% TGM_auwrite Write audiodata in an au-file.
 %
-% Parameters
-% ----------
-% inParam :  type
-%	 explanation
+%--------------------------------------------------------------------------
 %
-% Returns
-% -------
-% outParam :  type
-%	 explanation
+% stInfo = TGM_auwrite(szFilename,y,fs)
 %
-%------------------------------------------------------------------------ 
-% Example: Provide example here if applicable (one or two lines) 
+%
+% szFilename:   String which contains the name of the au-file, that should
+%               be created. If a path is specified, it can be absolute,
+%               relative, or partial.
+%
+% y:            Vector or matrix which contains the audio data, specified
+%               as an m-by-n matrix, where m is the number of audio samples
+%               to write and n is the number of audio channels to write.
+%
+% fs:           Samplerate of you audio data.
+%
+%--------------------------------------------------------------------------
+%
+% Example:      TGM_auwrite('test.au',rand(44100*3,1)-0.5,44100)
+%
+%--------------------------------------------------------------------------
+% See also: TGM_auinfo, TGM_auread.
 
-% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF 
-% Source: If the function is based on a scientific paper or a web site, 
-%         provide the citation detail here (with equation no. if applicable)  
+% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
 % Ver. 0.01 initial create                                   29-Apr-2015 JK
+% Ver. 0.02 help update                                      06-May-2015 JK
 
 % To-Do:
 %   * check if .au extension is missing and attends it automatically
@@ -27,9 +34,7 @@ function []=TGM_auwrite(szName,y,fs)
 %   * error message, if aufile could not be written
 %   * blockwise writing
 
-%------------Your function implementation here--------------------------- 
-
-
+%--------------------------------------------------------------------------
 
 % variable values
 [iSamples,iCH]  = size(y);
@@ -48,14 +53,14 @@ szDataSize      = 'ffffffff';
 
 %% input checking
 
-if strcmp(szName(end-3),'.au')
-    szName = [szName '.au'];
+if strcmp(szFilename(end-3),'.au')
+    szFilename = [szFilename '.au'];
 end
 
 
 %% write header
 
-[FID,msg] = fopen(szName,'w','b');
+FID = fopen(szFilename,'w','b');
 fwrite(FID,int32(szMagicNumber),'uchar');       % 0 magic number
 fwrite(FID,24,'uint32');                        % 1 data offset
 fwrite(FID,hex2dec(szDataSize),'uint32');       % 2 data size
@@ -77,7 +82,8 @@ end
 % check for possible clipping:
 nclips = numel(find( quant_data<-max_amp | quant_data >=max_amp ));
 if nclips > 0,
-  warning('your data block exhibits %d clipped sample(s), of %d samples in total\n', nclips, iSamples_total);
+  warning(['your data block exhibits %d clipped sample(s), '...
+      'of %d samples in total\n'], nclips, iSamples_total);
   % no explicit clipping necessayr here, as clipping is
   % automatically performed by fwrite later 
 end
@@ -92,7 +98,7 @@ fwrite(FID, quant_data, szFormat);
 fclose(FID);
 
 
-%--------------------Licence ---------------------------------------------
+%--------------------------------------------------------------------------
 % Copyright (c) <2015> Julian Kahnert
 % Jade University of Applied Sciences 
 % Permission is hereby granted, free of charge, to any person obtaining 
