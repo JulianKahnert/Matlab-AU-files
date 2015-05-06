@@ -1,7 +1,7 @@
 % Script to test the function [outParam]=TGM_auinfo(inParam).m 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF 
 % Version History:
-% Ver. 0.01 initial create (empty) 05-May-2015 			 Initials (eg. JB)
+% Ver. 0.01 initial create                                   05-May-2015 JK
 
 clear;
 close all;
@@ -10,15 +10,59 @@ clc;
 %------------Your script starts here-------- 
 
 %Define your parameters and adjust your function call
-% inParam = 'temp/KriegDerWeltenShort_ref.au';
 inParam = 'temp/KriegDerWeltenShort_TGM.au';
 
-[stInfo]=TGM_auinfo(inParam);
+stInfo      = TGM_auinfo(inParam);
+stInfo_ref  = audioinfo(inParam);
 
-disp(stInfo)
-stInfo2 = audioinfo(inParam);
-disp(stInfo2)
 
+%% check field: Filename
+
+if ~strcmp(stInfo.Filename,stInfo_ref.Filename)
+    error('Filename not consistent!')
+end
+
+
+%% check field: CompressionMethod
+
+if ~strcmp(stInfo.CompressionMethod,stInfo_ref.CompressionMethod)
+    error('CompressionMethod not consistent!')
+end
+
+
+%% check field: NumChannels
+
+if stInfo.NumChannels ~= stInfo_ref.NumChannels
+    error('NumChannels not consistent!')
+end
+
+
+%% check field: SampleRate
+
+if stInfo.SampleRate ~= stInfo_ref.SampleRate
+    error('SampleRate not consistent!')
+end
+
+
+%% check field: TotalSamples
+
+if stInfo.TotalSamples ~= stInfo_ref.TotalSamples
+    error('TotalSamples not consistent!')
+end
+
+
+%% check field: Duration
+
+if stInfo.Duration ~= stInfo_ref.Duration
+    error('Duration not consistent!')
+end
+
+
+%% check field: BitsPerSample
+
+if stInfo.BitsPerSample ~= stInfo_ref.BitsPerSample
+    error('NumChannels not consistent!')
+end
 
 
 %--------------------Licence ---------------------------------------------

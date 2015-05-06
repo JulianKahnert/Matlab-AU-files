@@ -24,7 +24,7 @@ function [stInfo]=TGM_auinfo(szFilename)
 %------------Your function implementation here--------------------------- 
 
 %% read data from file
-[FID,msg]       = fopen(szFilename,'r');
+FID             = fopen(szFilename,'r');
 szMagicNumber   = fread(FID,4,'*char',0,'b');
 iDataOffset     = fread(FID,1,'uint32',0,'b');
 iDataSize       = fread(FID,1,'uint32',0,'b');
