@@ -27,7 +27,7 @@ function [y, fs] = TGM_auread(szFilename,vInterval_smp)
 %               [y,fs] = TGM_auwrite('test.au',[20 Inf]);
 %
 %--------------------------------------------------------------------------
-% See also: TGM_auinfo, TGM_auread.
+% See also: TGM_auinfo, TGM_auwrite.
 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
@@ -42,7 +42,7 @@ function [y, fs] = TGM_auread(szFilename,vInterval_smp)
 %   * smp   = samples
 %   * B     = bytes
 %   * b     = bits
-% For example: iDataSize_B  => (i)(DataSize)_(B) 
+% For example: iDataSize_B  => (i)(DataSize)_(B)
 
 
 
@@ -75,7 +75,7 @@ iTotal_smp = iDataSize_B*8/iBitsPerSample;
 if nargin == 1
     vInterval_smp = [1 iTotal_smp];
 elseif vInterval_smp(2) > iTotal_smp/iChannels && vInterval_smp(2) ~= Inf
-    error('The choosen interval is out of range!')    
+    error('The choosen interval is out of range!')
 elseif vInterval_smp(2) == Inf
     vInterval_smp(2) = iTotal_smp;
 end
