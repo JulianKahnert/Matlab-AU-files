@@ -37,35 +37,62 @@ function [y, fs] = TGM_auread(szFilename,vSamples)
 
 %--------------------------------------------------------------------------
 
-%% read data from file
 
-FID             = fopen(szFilename,'r');
+%% check input
+
+if nargin == 1
+    vSamples = [1 Inf];
+end
+
+
+%% read header from file
+
+FID = fopen(szFilename,'r');
 if FID == -1
     error('Can not read file. Is the path correct?')
 end
-szMagicNumber   = fread(FID,4,'*char',0,'b');
-iDataOffset     = fread(FID,1,'uint32',0,'b');
-iDataSize       = fread(FID,1,'uint32',0,'b');
-iEncoding       = fread(FID,1,'uint32',0,'b');
-iSampleRate     = fread(FID,1,'uint32',0,'b');
-iChannels       = fread(FID,1,'uint32',0,'b');
+fseek(FID,4,'bof');                         % 0 magic number
+iDataOffset = fread(FID,1,'int32',0,'b');   % 1 data offset
+fseek(FID,4,'cof');                         % 2 data size
+iEncoding   = fread(FID,1,'int32',0,'b');   % 3 encoding
+fs          = fread(FID,1,'int32',0,'b');   % 4 sample rate
+iChannels   = fread(FID,1,'int32',0,'b');   % 5 channels
 
-szPath          = fopen(FID);
-stFile          = dir(szPath);
-iDataSize_new   = stFile.bytes - iDataOffset;
+szPath      = fopen(FID);
+stFile      = dir(szPath);
+iDataSize   = stFile.bytes - iDataOffset;
 
-
-%% show warnings if the data is corrupt
-
-if ~strcmp(szMagicNumber.','.snd')
-    warning('The magic number in your .au-file is corrupt!')
-end
-
-if iDataSize ~= iDataSize_new
-    warning('DataSize in header is not correct!')
+if iEncoding == 3
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 16;
 end
 
 
+%% read audio data
+
+fseek(FID, iDataOffset, 'bof');     % jump to begin of data block
+
+nSamples = iDataSize*8/iBitsPerSample;
+
+vSig = zeros(nSamples,1);
+
+k = 1;
+while ~feof(FID)
+    iCurr = fread(FID,1,'int16',0,'b');
+    if isempty(iCurr)
+        disp(k)
+    else
+        vSig(k) = iCurr;
+    end
+    k = k+1;
+end
+
+% normalization
+max_amp = 2^(iBitsPerSample-1);
+y       = vSig/max_amp;
+y       = reshape(y,iChannels,[]).';
+
+fclose(FID);
 
 %--------------------------------------------------------------------------
 % Copyright (c) <2015> Julian Kahnert

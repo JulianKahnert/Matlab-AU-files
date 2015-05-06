@@ -8,11 +8,27 @@ close all;
 clc;
 
 %------------Your script starts here-------- 
+% szFilename = 'temp/KriegDerWeltenShort_ref.au';
+szFilename = 'temp/KriegDerWeltenShort_TGM.au';
 
-%Define your parameters and adjust your function call
-inParam = 
-[outParam]=TGM_auread(inParam);
+% szFilename = 'temp/test.au';
+% auwrite(rand(10,2)-0.5,44100,16,'linear',szFilename)
 
+
+
+
+[y,fs]=TGM_auread(szFilename);
+
+
+[y_ref,fs_ref] = audioread(szFilename);
+
+if fs ~= fs_ref
+    warning('Samplerate not correct!')
+end
+
+if max(abs(y_ref-y)) ~= 0
+    warning('Data corrupt!')
+end
 
 %--------------------Licence ---------------------------------------------
 % Copyright (c) <2015> Julian Kahnert
