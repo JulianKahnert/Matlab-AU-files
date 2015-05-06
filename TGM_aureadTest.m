@@ -15,12 +15,12 @@ szFilename = 'temp/KriegDerWeltenShort_TGM.au';
 % auwrite(rand(10,2)-0.5,44100,16,'linear',szFilename)
 
 
+vSamples = [130 500];
+
+[y,fs]=TGM_auread(szFilename,vSamples);
 
 
-[y,fs]=TGM_auread(szFilename);
-
-
-[y_ref,fs_ref] = audioread(szFilename);
+[y_ref,fs_ref] = audioread(szFilename,vSamples);
 
 if fs ~= fs_ref
     warning('Samplerate not correct!')
@@ -29,6 +29,10 @@ end
 if max(abs(y_ref-y)) ~= 0
     warning('Data corrupt!')
 end
+
+size(y_ref)
+size(y)
+
 
 %--------------------Licence ---------------------------------------------
 % Copyright (c) <2015> Julian Kahnert

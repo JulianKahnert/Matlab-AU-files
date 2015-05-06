@@ -1,4 +1,4 @@
-function [y, fs] = TGM_auread(szFilename,vSamples)
+function [y, fs] = TGM_auread(szFilename,vInterval_smp)
 % TGM_auread Read the audio data of an au-file.
 %
 %--------------------------------------------------------------------------
@@ -10,7 +10,7 @@ function [y, fs] = TGM_auread(szFilename,vSamples)
 %               be read. If a path is specified, it can be absolute,
 %               relative, or partial.
 %
-% vSamples:     Two element vector [start end] which specifies the reading
+% vInterval_smp:Two element vector [start end] which specifies the reading
 %               interval. Start represents the first and end the last
 %               sample in this interval.
 %
@@ -22,7 +22,9 @@ function [y, fs] = TGM_auread(szFilename,vSamples)
 %
 %--------------------------------------------------------------------------
 %
-% Example:      [y,fs] = TGM_auwrite('test.au',rand(44100*3,1)-0.5,44100)
+% Example:      [y,fs] = TGM_auwrite('test.au');
+%               [y,fs] = TGM_auwrite('test.au',[20 100]);
+%               [y,fs] = TGM_auwrite('test.au',[20 Inf]);
 %
 %--------------------------------------------------------------------------
 % See also: TGM_auinfo, TGM_auread.
@@ -36,13 +38,12 @@ function [y, fs] = TGM_auread(szFilename,vSamples)
 %   *
 
 %--------------------------------------------------------------------------
+% Definition of the variables (class)(Name)_(Unit):
+%   * smp   = samples
+%   * B     = bytes
+%   * b     = bits
+% For example: iDataSize_B  => (i)(DataSize)_(B) 
 
-
-%% check input
-
-if nargin == 1
-    vSamples = [1 Inf];
-end
 
 
 %% read header from file
@@ -51,46 +52,46 @@ FID = fopen(szFilename,'r');
 if FID == -1
     error('Can not read file. Is the path correct?')
 end
-fseek(FID,4,'bof');                         % 0 magic number
-iDataOffset = fread(FID,1,'int32',0,'b');   % 1 data offset
-fseek(FID,4,'cof');                         % 2 data size
-iEncoding   = fread(FID,1,'int32',0,'b');   % 3 encoding
-fs          = fread(FID,1,'int32',0,'b');   % 4 sample rate
-iChannels   = fread(FID,1,'int32',0,'b');   % 5 channels
+fseek(FID,4,'bof');                             % 0 magic number
+iDataOffset_B   = fread(FID,1,'int32',0,'b');   % 1 data offset
+fseek(FID,4,'cof');                             % 2 data size
+iEncoding       = fread(FID,1,'int32',0,'b');   % 3 encoding
+fs              = fread(FID,1,'int32',0,'b');   % 4 sample rate
+iChannels       = fread(FID,1,'int32',0,'b');   % 5 channels
 
-szPath      = fopen(FID);
-stFile      = dir(szPath);
-iDataSize   = stFile.bytes - iDataOffset;
+szPath          = fopen(FID);
+stFile          = dir(szPath);
+iDataSize_B     = stFile.bytes - iDataOffset_B;
 
 if iEncoding == 3
-    szCompression   = 'Uncompressed';
     iBitsPerSample  = 16;
+    szFormat        = 'int16';
 end
 
 
 %% read audio data
 
-fseek(FID, iDataOffset, 'bof');     % jump to begin of data block
-
-nSamples = iDataSize*8/iBitsPerSample;
-
-vSig = zeros(nSamples,1);
-
-k = 1;
-while ~feof(FID)
-    iCurr = fread(FID,1,'int16',0,'b');
-    if isempty(iCurr)
-        disp(k)
-    else
-        vSig(k) = iCurr;
-    end
-    k = k+1;
+iTotal_smp = iDataSize_B*8/iBitsPerSample;
+if nargin == 1
+    vInterval_smp = [1 iTotal_smp];
+elseif vInterval_smp(2) > iTotal_smp/iChannels && vInterval_smp(2) ~= Inf
+    error('The choosen interval is out of range!')    
+elseif vInterval_smp(2) == Inf
+    vInterval_smp(2) = iTotal_smp;
 end
+
+% define frist byte in the desired interval and jump to it
+iOffset_B = iDataOffset_B + (vInterval_smp(1)-1)*iBitsPerSample/8*iChannels;
+fseek(FID,iOffset_B,'bof');
+
+% define length of the desired interval and read the samples
+iNum_smp= ( vInterval_smp(2)-vInterval_smp(1)+1 ) *iChannels;
+vSig    = fread(FID,iNum_smp,szFormat,0,'b');
 
 % normalization
 max_amp = 2^(iBitsPerSample-1);
-y       = vSig/max_amp;
-y       = reshape(y,iChannels,[]).';
+vSig    = vSig/max_amp;
+y       = reshape(vSig,iChannels,[]).';
 
 fclose(FID);
 
