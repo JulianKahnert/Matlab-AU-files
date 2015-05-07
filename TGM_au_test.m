@@ -31,8 +31,10 @@ szFile_au_ref   = fullfile(szPath,[szName(1:end-4) '_ref.au']);
 szFile_au_new   = fullfile(szPath,[szName(1:end-4) '_TGM.au']);
 
 % Include usr/local binaries (necessary on OSX for brew versions)
-PATH = getenv('PATH');
-setenv('PATH', [PATH ':/usr/local/bin']);
+if isunix
+    PATH = getenv('PATH');
+    setenv('PATH', [PATH ':/usr/local/bin']);
+end
 
 szCmd = sprintf('sox "%s" -c %i "%s"',szFile_wav,iChannels,szFile_au_ref);
 
