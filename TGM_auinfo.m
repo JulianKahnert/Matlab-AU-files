@@ -17,6 +17,8 @@ function [stInfo] = TGM_auinfo(szFilename)
 % Example:      stInfo = TGM_auinfo('temp/TomShort.au')
 %
 %--------------------------------------------------------------------------
+% This projected is licensed under the terms of the MIT license.
+%--------------------------------------------------------------------------
 % See also: TGM_auread, TGM_auwrite.
 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
