@@ -35,66 +35,82 @@ FID             = fopen(szFilename,'r');
 if FID == -1
     error('Can not read file. Is the path correct?')
 end
-szMagicNumber   = fread(FID,4,'*char',0,'b');   % 0 magic number
-iDataOffset     = fread(FID,1,'int32',0,'b');  % 1 data offset
-iDataSize       = fread(FID,1,'int32',0,'b');  % 2 data size
-iEncoding       = fread(FID,1,'int32',0,'b');  % 3 encoding
-iSampleRate     = fread(FID,1,'int32',0,'b');  % 4 sample rate
-iChannels       = fread(FID,1,'int32',0,'b');  % 5 channels
+szMagicNumber   = fread(FID,4,'*char',0,'b');
+iDataOffset     = fread(FID,1,'uint32',0,'b');
+fseek(FID,4,'cof');                             % 2 data size
+iEncoding       = fread(FID,1,'uint32',0,'b');
+iSampleRate     = fread(FID,1,'uint32',0,'b');
+iChannels       = fread(FID,1,'uint32',0,'b');
 
 szPath          = fopen(FID);
 stFile          = dir(szPath);
-iDataSize_new   = stFile.bytes - iDataOffset;
+iDataSize       = stFile.bytes - iDataOffset;
 fclose(FID);
 
 
 %% show warnings if the data is corrupt
 
 if ~strcmp(szMagicNumber.','.snd')
-    warning('The magic number in your .au-file is corrupt!')
-end
-
-if iDataSize ~= iDataSize_new
-    warning('DataSize in header is not correct!')
+    error('The first 32 bits of your file are corrupt. Is it a au-file?')
 end
 
 
 %% write info struct
+if iEncoding == 1       % 8-bit G.711 µ-law
+    szCompression   = 'Compressed';
+    iBitsPerSample  = 8;
 
-if iEncoding == 3
+elseif iEncoding == 2   % 8-bit linear PCM
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 8;
+
+elseif iEncoding == 3   % 16-bit linear PCM
     szCompression   = 'Uncompressed';
     iBitsPerSample  = 16;
+
+elseif iEncoding == 4   % 24-bit linear PCM
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 24;
+
+elseif iEncoding == 5   % 32-bit linear PCM
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 32;
+
+elseif iEncoding == 6   % 32-bit IEEE floating point
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 32;
+
+elseif iEncoding == 7   % 64-bit IEEE floating point
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 64;
 end
+
+% 8 = Fragmented sample data
+% 9 = DSP program
+% 10 = 8-bit fixed point
+% 11 = 16-bit fixed point
+% 12 = 24-bit fixed point
+% 13 = 32-bit fixed point
+% 18 = 16-bit linear with emphasis
+% 19 = 16-bit linear compressed
+% 20 = 16-bit linear with emphasis and compression
+% 21 = Music kit DSP commands
+% 23 = 4-bit compressed using the ITU-T G.721 ADPCM voice data encoding scheme
+% 24 = ITU-T G.722 SB-ADPCM
+% 25 = ITU-T G.723 3-bit ADPCM
+% 26 = ITU-T G.723 5-bit ADPCM
+% 27 = 8-bit G.711 A-law
+
 
 stInfo = struct(...
     'Filename',         szPath,...
     'CompressionMethod',szCompression,...
     'NumChannels',      iChannels,...
     'SampleRate',       iSampleRate,...
-    'TotalSamples',     iDataSize_new*8 / iBitsPerSample / iChannels,...
-    'Duration',         iDataSize_new*8 / iBitsPerSample / iSampleRate / iChannels,...
+    'TotalSamples',     iDataSize*8 / iBitsPerSample / iChannels,...
+    'Duration',         iDataSize*8 / iBitsPerSample / iSampleRate / iChannels,...
     'Title',            [],...
     'Comment',          [],...
     'Artist',           [],...
     'BitsPerSample',    iBitsPerSample);
 
-
-%--------------------------------------------------------------------------
-% Copyright (c) <2015> Julian Kahnert
-% Jade University of Applied Sciences
-% Permission is hereby granted, free of charge, to any person obtaining
-% a copy of this software and associated documentation files
-% (the "Software"), to deal in the Software without restriction, including
-% without limitation the rights to use, copy, modify, merge, publish,
-% distribute, sublicense, and/or sell copies of the Software, and to
-% permit persons to whom the Software is furnished to do so, subject
-% to the following conditions:
-% The above copyright notice and this permission notice shall be included
-% in all copies or substantial portions of the Software.
-% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-% EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-% OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-% IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-% CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-% TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-% SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
