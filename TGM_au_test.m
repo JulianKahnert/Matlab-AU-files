@@ -18,15 +18,17 @@
 
 
 %% preferences
-szName          = 'KriegDerWeltenShort.wav';    % name of a reference wav
+
 iChannels       = 2;                            % Channels: 1|2|4
 
 szPath          = fileparts(which('TGM_au_test.m'));
 cd(szPath)
-
+szName          = 'tester_noise.wav';           % name of a reference wav
+fs              = 44100;
+audiowrite(szName,rand(fs*10,1)-.5,fs);
 szFile_wav      = fullfile(szPath,szName);
-szFile_au_ref   = ['tester_' szName(1:end-4) '_ref.au'];
-szFile_au_new   = ['tester_' szName(1:end-4) '_TGM.au'];
+szFile_au_ref   = fullfile(szPath,[szName(1:end-4) '_ref.au']);
+szFile_au_new   = fullfile(szPath,[szName(1:end-4) '_TGM.au']);
 
 % Include usr/local binaries (necessary on OSX for brew versions)
 PATH = getenv('PATH');
@@ -35,6 +37,9 @@ setenv('PATH', [PATH ':/usr/local/bin']);
 szCmd = sprintf('sox "%s" -c %i "%s"',szFile_wav,iChannels,szFile_au_ref);
 
 [bError, msg] = system(szCmd);
+if bError
+    error('Sox Commandline error!')
+end
 save(fullfile(szPath,'tester_temp.mat'),...
     'szPath','szFile_wav','szFile_au_ref','szFile_au_new')
 
@@ -111,7 +116,7 @@ load(which('tester_temp.mat'))
 [y_ref,fs_ref]  = audioread(szFile_au_ref);
 
 if fs ~= fs_ref || any(y(:) ~= y_ref(:))
-    warning('Data corrupt!')
+    error('Data corrupt!')
 end
 
 %% READ: read data with interval (1)
@@ -122,7 +127,7 @@ vSamples = [10 200];
 [y_ref,fs_ref]  = audioread(szFile_au_ref,vSamples);
 
 if fs ~= fs_ref || any(y(:) ~= y_ref(:))
-    warning('Data corrupt!')
+    error('Data corrupt!')
 end
 
 %% READ: read data with interval (2)
