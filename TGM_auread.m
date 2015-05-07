@@ -50,22 +50,18 @@ function [y, fs] = TGM_auread(szFilename,vInterval_smp)
 
 %% read header from file
 
-FID = fopen(szFilename,'r');
+stInfo  = TGM_auinfo(szFilename);
+fs      = stInfo.SampleRate;
+FID     = fopen(szFilename,'r');
 if FID == -1
     error('Can not read file. Is the path correct?')
 end
-fseek(FID,4,'bof');                             % 0 magic number
-iDataOffset_B   = fread(FID,1,'int32',0,'b');   % 1 data offset
-fseek(FID,4,'cof');                             % 2 data size
-iEncoding       = fread(FID,1,'int32',0,'b');   % 3 encoding
-fs              = fread(FID,1,'int32',0,'b');   % 4 sample rate
-iChannels       = fread(FID,1,'int32',0,'b');   % 5 channels
 
 szPath          = fopen(FID);
 stFile          = dir(szPath);
-iDataSize_B     = stFile.bytes - iDataOffset_B;
+iDataSize_B     = stFile.bytes - stInfo.DataOffset;
 
-if iEncoding == 3
+if stInfo.Encoding == 3
     iBitsPerSample  = 16;
     szFormat        = 'int16';
 else
@@ -78,23 +74,23 @@ end
 iTotal_smp = iDataSize_B*8/iBitsPerSample;
 if nargin == 1
     vInterval_smp = [1 iTotal_smp];
-elseif vInterval_smp(2) > iTotal_smp/iChannels && vInterval_smp(2) ~= Inf
+elseif vInterval_smp(2) > iTotal_smp/stInfo.NumChannels && vInterval_smp(2) ~= Inf
     error('The choosen interval is out of range!')
 elseif vInterval_smp(2) == Inf
     vInterval_smp(2) = iTotal_smp;
 end
 
 % define frist byte in the desired interval and jump to it
-iOffset_B = iDataOffset_B + (vInterval_smp(1)-1)*iBitsPerSample/8*iChannels;
+iOffset_B = stInfo.DataOffset + (vInterval_smp(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
 fseek(FID,iOffset_B,'bof');
 
 % define length of the desired interval and read the samples
-iNum_smp= ( vInterval_smp(2)-vInterval_smp(1)+1 ) *iChannels;
+iNum_smp= ( vInterval_smp(2)-vInterval_smp(1)+1 ) *stInfo.NumChannels;
 vSig    = fread(FID,iNum_smp,szFormat,0,'b');
 
 % normalization
 max_amp = 2^(iBitsPerSample-1);
 vSig    = vSig/max_amp;
-y       = reshape(vSig,iChannels,[]).';
+y       = reshape(vSig,stInfo.NumChannels,[]).';
 
 fclose(FID);
