@@ -42,15 +42,11 @@ function [] = TGM_auwrite(szFilename,y,fs)
 [iSamples,iCH]  = size(y);
 iSamples_total  = iCH * iSamples;
 iEncoding       = 3;
-
-% szFormat        = 'uint32';
 szFormat        = 'int16';
 nbits           = 16;
 
-
 % fixed values
 szMagicNumber   = '.snd';
-szDataSize      = 'ffffffff';
 
 
 %% input checking
@@ -64,11 +60,11 @@ end
 
 FID = fopen(szFilename,'w','b');
 fwrite(FID,int32(szMagicNumber),'uchar');          % 0 magic number
-fwrite(FID,24,                  'int32');          % 1 data offset
-fwrite(FID,hex2dec(szDataSize), 'uint32');         % 2 data size
-fwrite(FID,iEncoding,           'int32');          % 3 encoding
-fwrite(FID,fs,                  'int32');          % 4 sample rate
-fwrite(FID,iCH,                 'int32');          % 5 channels
+fwrite(FID,24,                  'uint32');         % 1 data offset
+fwrite(FID,intmax('uint32'),    'uint32');         % 2 data size
+fwrite(FID,iEncoding,           'uint32');         % 3 encoding
+fwrite(FID,fs,                  'uint32');         % 4 sample rate
+fwrite(FID,iCH,                 'uint32');         % 5 channels
 
 
 %% write data
