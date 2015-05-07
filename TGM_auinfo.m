@@ -80,26 +80,66 @@ elseif iEncoding == 6   % 32-bit IEEE floating point
     szCompression   = 'Uncompressed';
     iBitsPerSample  = 32;
 
-elseif iEncoding == 7   % 64-bit IEEE floating point
-    szCompression   = 'Uncompressed';
-    iBitsPerSample  = 64;
-end
+% elseif iEncoding == 8   % Fragmented sample data
+%     szCompression   = '';
+%     iBitsPerSample  = [];
 
-% 8 = Fragmented sample data
-% 9 = DSP program
-% 10 = 8-bit fixed point
-% 11 = 16-bit fixed point
-% 12 = 24-bit fixed point
-% 13 = 32-bit fixed point
-% 18 = 16-bit linear with emphasis
-% 19 = 16-bit linear compressed
-% 20 = 16-bit linear with emphasis and compression
-% 21 = Music kit DSP commands
-% 23 = 4-bit compressed using the ITU-T G.721 ADPCM voice data encoding scheme
-% 24 = ITU-T G.722 SB-ADPCM
-% 25 = ITU-T G.723 3-bit ADPCM
-% 26 = ITU-T G.723 5-bit ADPCM
-% 27 = 8-bit G.711 A-law
+% elseif iEncoding == 9   % DSP program
+%     szCompression   = '';
+%     iBitsPerSample  = [];
+
+elseif iEncoding == 10  % 8-bit fixed point
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 8;
+
+elseif iEncoding == 11  % 16-bit fixed point
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 16;
+
+elseif iEncoding == 12  % 24-bit fixed point
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 24;
+
+elseif iEncoding == 13  % 32-bit fixed point
+    szCompression   = 'Uncompressed';
+    iBitsPerSample  = 32;
+
+% elseif iEncoding == 18  % 16-bit linear with emphasis
+%     szCompression   = 'Uncompressed';
+%     iBitsPerSample  = 16;
+
+elseif iEncoding == 19  % 16-bit linear compressed
+    szCompression   = 'compressed';
+    iBitsPerSample  = 16;
+
+elseif iEncoding == 20  % 16-bit linear with emphasis and compression
+    szCompression   = 'compressed';
+    iBitsPerSample  = 16;
+
+% elseif iEncoding == 21  % Music kit DSP commands
+%     szCompression   = '';
+%     iBitsPerSample  = [];
+
+elseif iEncoding == 23  % 4-bit compressed using the ITU-T G.721 ADPCM voice data encoding scheme
+    szCompression   = 'compressed';
+    iBitsPerSample  = 4;
+
+% elseif iEncoding == 24  % ITU-T G.722 SB-ADPCM
+%     szCompression   = '';
+%     iBitsPerSample  = [];
+
+% elseif iEncoding == 25  % ITU-T G.723 3-bit ADPCM
+%     szCompression   = '';
+%     iBitsPerSample  = 3;
+
+% elseif iEncoding == 26  % ITU-T G.723 5-bit ADPCM
+%     szCompression   = '';
+%     iBitsPerSample  = 5;
+
+elseif iEncoding == 27  % 8-bit G.711 A-law
+    szCompression   = 'compressed';
+    iBitsPerSample  = 8;
+end
 
 
 stInfo = struct(...
