@@ -1,4 +1,4 @@
-function [y, fs] = TGM_auread(szFilename,vInterval_smp)
+function [y, fs] = au_read(szFilename,vInterval_smp)
 % TGM_auread Read the audio data of an au-file.
 %
 %--------------------------------------------------------------------------

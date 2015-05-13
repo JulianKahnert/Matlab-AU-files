@@ -1,4 +1,4 @@
-function [] = TGM_auwrite(szFilename,y,fs)
+function [] = au_write(szFilename,y,fs)
 % TGM_auwrite Write audiodata in an au-file.
 %
 %--------------------------------------------------------------------------
@@ -41,9 +41,11 @@ function [] = TGM_auwrite(szFilename,y,fs)
 % variable values
 [iSamples,iCH]  = size(y);
 iSamples_total  = iCH * iSamples;
-iEncoding       = 3;
-szFormat        = 'int16';
-nbits           = 16;
+% iEncoding       = 3;
+iEncoding       = 4;
+% szFormat        = 'int16';
+% nbits           = 16;
+nbits           = 24;
 
 % fixed values
 szMagicNumber   = '.snd';
@@ -92,6 +94,7 @@ if iCH > 1,
   quant_data = reshape(quant_data', iSamples_total, 1);
 end
 
-fwrite(FID, quant_data, szFormat);
+% fwrite(FID, quant_data, szFormat);
+fwrite(FID, quant_data, 'bit24');
 fclose(FID);
 
