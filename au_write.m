@@ -1,4 +1,4 @@
-function [] = au_write(szFilename,y,fs)
+function [] = au_write(szFilename,y,fs,szEncoding)
 % TGM_auwrite Write audiodata in an au-file.
 %
 %--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ function [] = au_write(szFilename,y,fs)
 %--------------------------------------------------------------------------
 % This projected is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% See also: TGM_auinfo, TGM_auread.
+% See also: TGM_auinfo, TGM_auread
 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
@@ -38,14 +38,27 @@ function [] = au_write(szFilename,y,fs)
 
 %--------------------------------------------------------------------------
 
+%#% tbd
+if nargin == 0
+    au_write('test.au',rand(44100,1)-.5,44100);
+end
+
+if nargin < 4
+    szEncoding = 'int16';
+end
+
 % variable values
 [iSamples,iCH]  = size(y);
 iSamples_total  = iCH * iSamples;
-% iEncoding       = 3;
-iEncoding       = 4;
-% szFormat        = 'int16';
-% nbits           = 16;
-nbits           = 24;
+
+% {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
+caEncoding = [];
+load('encoding.mat')
+
+iRowEncoding    = strcmpi(szEncoding,caEncoding(:,2));
+iEncoding       = caEncoding{iRowEncoding,1};
+iBitsPerSample  = caEncoding{iRowEncoding,3};
+szFormat        = caEncoding{iRowEncoding,6};
 
 % fixed values
 szMagicNumber   = '.snd';
@@ -72,12 +85,8 @@ fwrite(FID,iCH,                 'uint32');         % 5 channels
 %% write data
 
 % quantisation
-max_amp = 2^(nbits-1);
+max_amp = 2^(iBitsPerSample-1);
 quant_data = round(y*max_amp);
-if nbits == 8,
-  % in order to fit number range -128...+127 into that of an unsigned char:
-  quant_data = quant_data + 128; 
-end
 
 % check for possible clipping:
 nclips = numel(find( quant_data<-max_amp | quant_data >=max_amp ));
@@ -94,7 +103,7 @@ if iCH > 1,
   quant_data = reshape(quant_data', iSamples_total, 1);
 end
 
-% fwrite(FID, quant_data, szFormat);
-fwrite(FID, quant_data, 'bit24');
+fwrite(FID, quant_data, szFormat);
+
 fclose(FID);
 

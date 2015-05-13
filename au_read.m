@@ -1,4 +1,4 @@
-function [y, fs] = au_read(szFilename,vInterval_smp)
+function [y, fs, stInfo] = au_read(szFilename,vInterval_smp)
 % TGM_auread Read the audio data of an au-file.
 %
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ function [y, fs] = au_read(szFilename,vInterval_smp)
 %--------------------------------------------------------------------------
 % This projected is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% See also: TGM_auinfo, TGM_auwrite.
+% See also: TGM_auinfo, TGM_auwrite
 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
@@ -50,7 +50,7 @@ function [y, fs] = au_read(szFilename,vInterval_smp)
 
 %% read header from file
 
-stInfo  = TGM_auinfo(szFilename);
+stInfo  = au_info(szFilename);
 fs      = stInfo.SampleRate;
 FID     = fopen(szFilename,'r');
 if FID == -1
@@ -61,12 +61,16 @@ szPath          = fopen(FID);
 stFile          = dir(szPath);
 iDataSize_B     = stFile.bytes - stInfo.DataOffset;
 
-if stInfo.Encoding == 3
-    iBitsPerSample  = 16;
-    szFormat        = 'int16';
-else
-	error('This encoding typ is currently not supported.')
+caEncoding      = [];
+load('encoding.mat')
+iRowEncoding    = find([caEncoding{:,1}]==stInfo.Encoding);
+if ~caEncoding{iRowEncoding,5}
+    error('The encoding-type ''%s'' is currently not supported.',...
+        caEncoding{iRowEncoding,end})
 end
+
+iBitsPerSample  = caEncoding{iRowEncoding,3};
+szFormat        = caEncoding{iRowEncoding,6};
 
 
 %% read audio data

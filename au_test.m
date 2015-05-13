@@ -3,7 +3,7 @@
 %--------------------------------------------------------------------------
 % This projected is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% See also: TGM_auinfo, TGM_auread, TGM_auwrite.
+% See also: au_info, au_read, au_write.
 
 
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF 
@@ -11,17 +11,51 @@
 % Ver. 0.01 initial create                                   05-May-2015 JK
 % Ver. 0.02 combined all test files                          06-May-2015 JK
 
-% To-Do:
-%   *
+% Generation of wav-files in Matlab:
+%   * n=1; audiowrite(['ref_Bit' num2str(n) '.wav'],1./2.^[0:n-1],44100);
+%   * audiowrite('ref.wav',rand(fs,1)-.5,44100);
+%   * audiowrite('ref_48kHz.wav',rand(fs,1)-.5,48000);
+
+% Convert wav- to au-files via SoX:
+%   * sox ref.wav -e signed-integer -c {nChans} ref_CH{nChans}.au
+%   * sox ref_Bit{nBits}.wav -e signed-integer -c 1 -b {nBits} ref_Bit{nBits}.au
+%   * sox ref_Bit{nBits}.wav -e floating-point -c 1 -b {nBits} ref_Bit{nBits}_float.au
+%   * sox ref_48kHz.wav -e signed-integer -c 1 -b 16 ref_48kHz.au
 
 %--------------------------------------------------------------------------
+
+% caEncoding = {...
+%      1, 'mu',       8, 'Compressed',   false,     'bit8', '8-bit G.711 µ-law';...
+%      2, 'int8',     8, 'Uncompressed', true,   'bit8', '8-bit linear PCM';...
+%      3, 'int16',   16, 'Uncompressed', true,  'bit16', '16-bit linear PCM';...
+%      4, 'int24',   24, 'Uncompressed', true,  'bit24', '24-bit linear PCM';...
+%      5, 'int32',   32, 'Uncompressed', true,  'bit32', '32-bit linear PCM';...
+%      6, 'single',  32, 'Uncompressed', true,'float32', '32-bit IEEE floating point';...
+%      7, 'double',  64, 'Uncompressed', true,'float64', '64-bit IEEE floating point';...
+%      8, '',        [], '',             false,       '', 'Fragmented sample data';...
+%      9, '',        [], '',             false,       '', 'DSP program';...
+%     10, '',         8, 'Uncompressed', false,       '', '8-bit fixed point';...
+%     11, '',        16, 'Uncompressed', false,       '', '16-bit fixed point';...
+%     12, '',        24, 'Uncompressed', false,       '', '24-bit fixed point';...
+%     13, '',        32, 'Uncompressed', false,       '', '32-bit fixed point';...
+%     18, '',        16, 'Compressed',   false,       '', '16-bit linear with emphasis';...
+%     19, '',        16, 'Compressed',   false,       '', '16-bit linear compressed';...
+%     20, '',        16, 'Compressed',   false,       '', '16-bit linear with emphasis and compression';...
+%     21, '',        [], '',             false,       '', 'Music kit DSP commands';...
+%     23, '',         4, '',             false,       '', '4-bit ITU-T G.721 ADPCM';...
+%     24, '',        [], '',             false,       '', 'ITU-T G.722 SB-ADPCM';...
+%     25, '',         3, '',             false,       '', 'ITU-T G.723 3-bit ADPCM';...
+%     26, '',         5, '',             false,       '', 'ITU-T G.723 5-bit ADPCM';...
+%     27, '',         8, 'Compressed',   false,       '', '8-bit G.711 A-law';...
+%     };
+% save('encoding.mat')
 
 
 %% preferences
 
 iChannels       = 2;                            % Channels: 1|2|4
 
-szPath          = fileparts(which('TGM_au_test.m'));
+szPath          = fileparts(which('au_test.m'));
 cd(szPath)
 szName          = 'tester_noise.wav';           % name of a reference wav
 fs              = 44100;
@@ -56,7 +90,7 @@ save(fullfile(szPath,'tester_temp.mat'),...
 %% WRITE: generate testing-data
 load(which('tester_temp.mat'))
 [vSig,fs] = audioread(szFile_au_ref);
-TGM_auwrite(szFile_au_new,vSig,fs)
+au_write(szFile_au_new,vSig,fs)
 
 %% WRITE: testing
 load(which('tester_temp.mat'))
@@ -79,7 +113,7 @@ end
 
 %% INFO: create info struct
 load(which('tester_temp.mat'))
-stInfo      = TGM_auinfo(szFile_au_ref);
+stInfo      = au_info(szFile_au_ref);
 stInfo_ref  = audioinfo(szFile_au_ref);
 
 if ~strcmp(stInfo.Filename,stInfo_ref.Filename)
@@ -114,7 +148,7 @@ end
 
 %% READ: read data without interval
 load(which('tester_temp.mat'))
-[y,fs]          = TGM_auread(szFile_au_ref);
+[y,fs]          = au_read(szFile_au_ref);
 [y_ref,fs_ref]  = audioread(szFile_au_ref);
 
 if fs ~= fs_ref || any(y(:) ~= y_ref(:))
@@ -125,7 +159,7 @@ end
 load(which('tester_temp.mat'))
 vSamples = [10 200];
 
-[y,fs]          = TGM_auread(szFile_au_ref,vSamples);
+[y,fs]          = au_read(szFile_au_ref,vSamples);
 [y_ref,fs_ref]  = audioread(szFile_au_ref,vSamples);
 
 if fs ~= fs_ref || any(y(:) ~= y_ref(:))
@@ -136,7 +170,7 @@ end
 load(which('tester_temp.mat'))
 vSamples = [10 Inf];
 
-[y,fs]          = TGM_auread(szFile_au_ref,vSamples);
+[y,fs]          = au_read(szFile_au_ref,vSamples);
 [y_ref,fs_ref]  = audioread(szFile_au_ref,vSamples);
 
 if fs ~= fs_ref || any(y(:) ~= y_ref(:))
