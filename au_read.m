@@ -84,6 +84,10 @@ elseif vInterval_smp(2) == Inf
     vInterval_smp(2) = iTotal_smp;
 end
 
+if vInterval_smp(2) < vInterval_smp(1)
+    error('Sample limits out of range')
+end
+
 % define frist byte in the desired interval and jump to it
 iOffset_B = stInfo.DataOffset + (vInterval_smp(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
 fseek(FID,iOffset_B,'bof');
