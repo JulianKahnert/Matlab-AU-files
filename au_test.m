@@ -13,7 +13,7 @@
 % Ver. 0.01 initial create                                   05-May-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
 %--------------------------------------------------------------------------
-
+% error while writing with szEncoding = 'single'
 
 %% Main function to generate tests
 function tests = tester_fun
@@ -64,6 +64,10 @@ function testRead(testCase)
         szPath  = fullfile(...
             testCase.TestData.szPath,...
             testCase.TestData.stFiles_all(i).name);
+        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+            warning('mu-law not yet supported')
+            return;
+        end
         [y1,fs1] = au_read(szPath);
         [y2,fs2] = audioread(szPath);
 
@@ -80,6 +84,10 @@ function testReadInterval1(testCase)
         szPath  = fullfile(...
             testCase.TestData.szPath,...
             testCase.TestData.stFiles_all(i).name);
+        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+            warning('mu-law not yet supported')
+            return;
+        end
         [y1,fs1] = au_read(szPath,vSamples);
         [y2,fs2] = audioread(szPath,vSamples);
         
@@ -96,7 +104,10 @@ function testReadInterval2(testCase)
         szPath  = fullfile(...
             testCase.TestData.szPath,...
             testCase.TestData.stFiles_all(i).name);
-        
+        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+            warning('mu-law not yet supported')
+            return;
+        end
         [y1,fs1] = au_read(szPath,vSamples);
         [y2,fs2] = audioread(szPath,vSamples);
         
@@ -129,6 +140,37 @@ function testWrite_all(testCase)
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
             plot(y1 - y2)
+            title('Difference between signals: ref - new')
+            error('ATTENTION: Saved vectors are not identical!!')
+        end
+    end
+    
+end
+
+function testWrite_bitDepths(testCase)
+% WRITE: different bit-depths
+    caEncoding = [];
+    load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
+    
+    for idx = find([caEncoding{:,5}])
+        szEncoding      = caEncoding{idx,2};
+        iBitsPerSample  = caEncoding{idx,3};
+        szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+            ['WriteTest_Bit' num2str(iBitsPerSample) '.au']);
+        
+        % reference signal
+        y1 = 1./2.^(1:iBitsPerSample-1).';
+        
+        % self-generated file
+        au_write(szFile_new,y1,44100,szEncoding)
+        if ~exist(szFile_new,'file')
+            error('Au-file not written!')
+        end
+        [y2,~] = audioread(szFile_new);
+        
+        if any(y1(:) ~= y2(:))
+            plot(y1 - y2)
+            keyboard
             title('Difference between signals: ref - new')
             error('ATTENTION: Saved vectors are not identical!!')
         end

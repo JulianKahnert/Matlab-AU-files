@@ -52,7 +52,7 @@ end
 
 % {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
 caEncoding = [];
-load('encoding.mat')
+load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
 
 iRowEncoding    = find([caEncoding{:,1}]==iEncoding);
 iBitsPerSample  = caEncoding{iRowEncoding,3};

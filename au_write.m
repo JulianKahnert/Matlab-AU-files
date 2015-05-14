@@ -14,6 +14,14 @@ function [] = au_write(szFilename,y,fs,szEncoding)
 %       n is the number of audio channels to write.
 %   fs:
 %       Samplerate of you audio data.
+%   szEncoding:
+%       'mu'
+%       'int8'
+%       'int16'
+%       'int24'
+%       'int32'
+%       'single'
+%       'double'
 %
 %   See also: au_info, au_read
 
@@ -45,7 +53,7 @@ iSamples_total  = iCH * iSamples;
 
 % {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
 caEncoding = [];
-load('encoding.mat')
+load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
 
 iRowEncoding    = strcmpi(szEncoding,caEncoding(:,2));
 iEncoding       = caEncoding{iRowEncoding,1};
