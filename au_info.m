@@ -1,31 +1,24 @@
 function [stInfo] = au_info(szFilename)
-% TGM_auinfo Return metadata of an au-file.
+%AU_INFO Returns metadata of an au-file.
 %
-%--------------------------------------------------------------------------
+%   stInfo = AU_INFO(szFilename)
 %
-% [stInfo] = TGM_auinfo(szFilename)
+%   szFilename:
+%       String which contains the name of the au-file. If a path is
+%       specified, it can be absolute, relative, or partial.
 %
+%   stInfo:
+%       Struct which contains the relevant information about the au-file.
 %
-% szFilename:   String which contains the name of the au-file. If a path is
-%               specified, it can be absolute, relative, or partial.
-%
-% stInfo:       Struct which contains the relevant information about the
-%               au-file.
-%
-%--------------------------------------------------------------------------
-%
-% Example:      stInfo = TGM_auinfo('temp/TomShort.au')
-%
+%   See also: au_read, au_write.
+
 %--------------------------------------------------------------------------
 % This projected is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% See also: TGM_auread, TGM_auwrite
-
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
 % Ver. 0.01 initial create                                   05-May-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
-
 %--------------------------------------------------------------------------
 
 

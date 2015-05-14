@@ -1,51 +1,39 @@
 function [y, fs, stInfo] = au_read(szFilename,vInterval_smp)
-% TGM_auread Read the audio data of an au-file.
+%AU_READ Read the audio data of an au-file.
 %
-%--------------------------------------------------------------------------
+%   [y, fs] = AU_READ(szFilename,vInterval_smp)
 %
-% [y, fs] = TGM_auwrite(szFilename,vInterval_smp)
+%   szFilename:
+%       String which contains the name of the au-file, that should be read.
+%       If a path is specified, it can be absolute, relative, or partial.
+%   vInterval_smp:
+%       Two element vector [start end] which specifies the reading
+%       interval. Start represents the first and end the last sample in
+%       this interval.
 %
+%   y:
+%       Vector or matrix which contains the audio data, specified as an
+%       m-by-n matrix, where m is the number of audio samples and n is the
+%       number of audio channels.
+%   fs:
+%       Samplerate of you audio data.
 %
-% szFilename:   String which contains the name of the au-file, that should
-%               be read. If a path is specified, it can be absolute,
-%               relative, or partial.
-%
-% vInterval_smp:Two element vector [start end] which specifies the reading
-%               interval. Start represents the first and end the last
-%               sample in this interval.
-%
-% y:            Vector or matrix which contains the audio data, specified
-%               as an m-by-n matrix, where m is the number of audio samples
-%               and n is the number of audio channels.
-%
-% fs:           Samplerate of you audio data.
-%
-%--------------------------------------------------------------------------
-%
-% Example:      [y,fs] = TGM_auwrite('test.au');
-%               [y,fs] = TGM_auwrite('test.au',[20 100]);
-%               [y,fs] = TGM_auwrite('test.au',[20 Inf]);
-%
+%   See also: au_info, au_write
+
 %--------------------------------------------------------------------------
 % This projected is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% See also: TGM_auinfo, TGM_auwrite
-
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
 % Ver. 0.01 initial create                                   05-May-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
-
-% To-Do:
-%   *
-
 %--------------------------------------------------------------------------
 % Definition of the variables (class)(Name)_(Unit):
 %   * smp   = samples
 %   * B     = bytes
 %   * b     = bits
 % For example: iDataSize_B  => (i)(DataSize)_(B)
-
+%--------------------------------------------------------------------------
 
 
 %% read header from file

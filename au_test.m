@@ -1,3 +1,20 @@
+%AU_TEST Unit-test of metadata of au_info, au_read and au_write.
+%
+%   To test the integrity of the au_* functions, run:
+%       runtests('au_test.m')
+%
+%   See also: au_info, au_read, au_write.
+
+%--------------------------------------------------------------------------
+% This projected is licensed under the terms of the MIT license.
+%--------------------------------------------------------------------------
+% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
+% Version History:
+% Ver. 0.01 initial create                                   05-May-2015 JK
+% Ver. 0.02 help update                                      06-May-2015 JK
+%--------------------------------------------------------------------------
+
+
 %% Main function to generate tests
 function tests = tester_fun
 tests = functiontests(localfunctions);
@@ -104,8 +121,10 @@ function testWrite(testCase)
         [y1,fs1] = audioread(szPath);
         
         % self-generated file
-        keyboard
         au_write(szFile_new,y1,fs1)
+        if ~exist(szFile_new,'file')
+            error('Au-file not written!')
+        end
         [y2,fs2] = audioread(szFile_new);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
@@ -124,15 +143,13 @@ function setupOnce(testCase)  % do not change function name
     clc
     szPath          = fileparts(which('au_test.m'));
     cd(szPath)
-    szPath_tmp      = 'temp';
-    if ~exist(szPath_tmp,'dir')
-        mkdir(szPath_tmp)
-    end
-
     szPath = fileparts(which('au_test.m'));
     szPath = fullfile(szPath,'audio_files');
     cd(szPath)
-
+    szPath_tmp = fullfile(szPath,'temp');
+    if ~exist(szPath_tmp,'dir')
+        mkdir(szPath_tmp)
+    end
 
     testCase.TestData.szPath_tmp  = szPath_tmp;
     testCase.TestData.szPath      = szPath;
@@ -142,16 +159,5 @@ end
 
 
 function teardownOnce(testCase)  % do not change function name
-keyboard
     rmdir(testCase.TestData.szPath_tmp,'s')
 end
-%
-% %% Optional fresh fixtures
-% function setup(testCase)  % do not change function name
-% % open a figure, for example
-% keyboard
-% end
-%
-% function teardown(testCase)  % do not change function name
-% % close figure, for example
-% end

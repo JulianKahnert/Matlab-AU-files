@@ -1,47 +1,39 @@
 function [] = au_write(szFilename,y,fs,szEncoding)
-% TGM_auwrite Write audiodata in an au-file.
+%AU_WRITE Write audiodata in an au-file.
 %
-%--------------------------------------------------------------------------
+% [] = AU_WRITE(szFilename,y,fs)
 %
-% [] = TGM_auwrite(szFilename,y,fs)
+%   szFilename:
+%       String which contains the name of the au-file, that should be
+%       created. If a path is specified, it can be absolute, relative, or
+%       partial.
 %
+%   y:
+%       Vector or matrix which contains the audio data, specified as an
+%       m-by-n matrix, where m is the number of audio samples to write and
+%       n is the number of audio channels to write.
+%   fs:
+%       Samplerate of you audio data.
 %
-% szFilename:   String which contains the name of the au-file, that should
-%               be created. If a path is specified, it can be absolute,
-%               relative, or partial.
-%
-% y:            Vector or matrix which contains the audio data, specified
-%               as an m-by-n matrix, where m is the number of audio samples
-%               to write and n is the number of audio channels to write.
-%
-% fs:           Samplerate of you audio data.
-%
-%--------------------------------------------------------------------------
-%
-% Example:      TGM_auwrite('test.au',rand(44100*3,1)-0.5,44100)
-%
+%   See also: au_info, au_read
+
 %--------------------------------------------------------------------------
 % This projected is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% See also: TGM_auinfo, TGM_auread
-
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
 % Ver. 0.01 initial create                                   29-Apr-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
-
+%--------------------------------------------------------------------------
 % To-Do:
 %   * check if .au extension is missing and attends it automatically
 %   * check if reshape really increases performance
 %   * error message, if aufile could not be written
 %   * blockwise writing
-
 %--------------------------------------------------------------------------
 
-%#% tbd
-if nargin == 0
-    au_write('test.au',rand(44100,1)-.5,44100);
-end
+
+%% input check
 
 if nargin < 4
     szEncoding = 'int16';
@@ -62,9 +54,6 @@ szFormat        = caEncoding{iRowEncoding,6};
 
 % fixed values
 szMagicNumber   = '.snd';
-
-
-%% input checking
 
 if strcmp(szFilename(end-3),'.au')
     szFilename = [szFilename '.au'];
