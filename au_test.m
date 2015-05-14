@@ -109,8 +109,8 @@ end
 
 %% WRITE-function
 
-function testWrite(testCase)
-    %#% SMOTHING IS WRONG HERE!!
+function testWrite_all(testCase)
+% WRITE: different channel/sample-rate configurations + clipping
     for i =1:numel(testCase.TestData.stFiles_all)
         szPath      = fullfile(...
             testCase.TestData.szPath,...
