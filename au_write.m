@@ -55,8 +55,10 @@ szFormat        = caEncoding{iRowEncoding,6};
 % fixed values
 szMagicNumber   = '.snd';
 
-if strcmp(szFilename(end-3),'.au')
-    szFilename = [szFilename '.au'];
+[szPath,szName,szExt]= fileparts(szFilename);
+if isempty(szExt) || ~strcmp(szExt,'.au')
+    warning('Wrong file-ending! New filename: ''%s''\n',[szName '.au'])
+    szFilename = fullfile(szPath,[szName '.au']);
 end
 
 
