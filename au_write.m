@@ -32,6 +32,7 @@ function [] = au_write(szFilename,y,fs,szEncoding)
 % Version History:
 % Ver. 0.01 initial create                                   29-Apr-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
+% Ver. 1.0.0 first mayor release                             19-May-2015 JK
 %--------------------------------------------------------------------------
 % To-Do:
 %   * check if .au extension is missing and attends it automatically
