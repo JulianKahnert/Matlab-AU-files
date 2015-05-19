@@ -14,6 +14,14 @@ function [] = au_write(szFilename,y,fs,szEncoding)
 %       n is the number of audio channels to write.
 %   fs:
 %       Samplerate of you audio data.
+%   szEncoding:
+%       'mu'
+%       'int8'
+%       'int16'
+%       'int24'
+%       'int32'
+%       'single'
+%       'double'
 %
 %   See also: au_info, au_read
 
@@ -24,6 +32,7 @@ function [] = au_write(szFilename,y,fs,szEncoding)
 % Version History:
 % Ver. 0.01 initial create                                   29-Apr-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
+% Ver. 1.0.0 first mayor release                             19-May-2015 JK
 %--------------------------------------------------------------------------
 % To-Do:
 %   * check if .au extension is missing and attends it automatically
@@ -45,7 +54,7 @@ iSamples_total  = iCH * iSamples;
 
 % {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
 caEncoding = [];
-load('encoding.mat')
+load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
 
 iRowEncoding    = strcmpi(szEncoding,caEncoding(:,2));
 iEncoding       = caEncoding{iRowEncoding,1};
@@ -55,8 +64,10 @@ szFormat        = caEncoding{iRowEncoding,6};
 % fixed values
 szMagicNumber   = '.snd';
 
-if strcmp(szFilename(end-3),'.au')
-    szFilename = [szFilename '.au'];
+[szPath,szName,szExt]= fileparts(szFilename);
+if isempty(szExt) || ~strcmp(szExt,'.au')
+    warning('Wrong file-ending! New filename: ''%s''\n',[szName '.au'])
+    szFilename = fullfile(szPath,[szName '.au']);
 end
 
 

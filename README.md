@@ -5,9 +5,9 @@ Since the [AU file format](https://en.wikipedia.org/wiki/Au_file_format/) has no
 
 Whereas the advantage of these functions are, that they are built on standard matlab-code, so that there is no fear of a *will be removed in a future release*-warning! Furthermore, they will support more au-encodings.
 
-## TGM_auinfo
-	[stInfo] = TGM_auinfo(szFilename)
-The `TGM_auinfo` function returns information of an au-file as a struct with the fieldnames:
+## au_info
+	[stInfo] = au_info(szFilename)
+The `au_info` function returns information of an au-file as a struct with the fieldnames:
 
 * Filename
 * CompressionMethod
@@ -21,14 +21,27 @@ The `TGM_auinfo` function returns information of an au-file as a struct with the
 * BitsPerSample
 
 
-## TGM_auread & TGM_auwrite
-	[y, fs] = TGM_auwrite(szFilename,vInterval_smp)
-	[] = TGM_auwrite(szFilename,y,fs)
-These functions are similiar sturctured as the Matlab equivalents.
+## au_read
+This function is similiar sturctured as the Matlab equivalent.
+```
+	[y, fs] = au_write(szFilename,vInterval_smp)
+```
+
+## au_write
+This function is similiar sturctured as the Matlab equivalent (audiowrite). With the advatage, that you can choose between different types of encodings. Just set the input variable `szEncoding` to one of the following strings:
+
+* 'int8'
+* 'int16'
+* 'int24'
+* 'int32'
+
+```
+	[] = au_write(szFilename,y,fs,szEncoding)
+```
 
 
-## TGM_au_test
-Unit test for all the features, which are implemented. If you want to run these tests, please make sure that you have [SoX](http://sox.sourceforge.net) installed. Afterwards you can run `runtests('TGM_au_test.m')` to check the integrity of those feautres.
+## au_test
+Unit test for all the features, which are implemented. If you want to run these tests, please make sure that you have [SoX](http://sox.sourceforge.net) installed. Afterwards you can run `runtests('au_test.m')` to check the integrity of those feautres.
 
 
 ---------------

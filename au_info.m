@@ -19,6 +19,7 @@ function [stInfo] = au_info(szFilename)
 % Version History:
 % Ver. 0.01 initial create                                   05-May-2015 JK
 % Ver. 0.02 help update                                      06-May-2015 JK
+% Ver. 1.0.0 first mayor release                             19-May-2015 JK
 %--------------------------------------------------------------------------
 
 
@@ -52,7 +53,7 @@ end
 
 % {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
 caEncoding = [];
-load('encoding.mat')
+load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
 
 iRowEncoding    = find([caEncoding{:,1}]==iEncoding);
 iBitsPerSample  = caEncoding{iRowEncoding,3};
