@@ -41,7 +41,7 @@ function [y, fs, stInfo] = au_read(szFilename,vInterval_smp)
 
 stInfo  = au_info(szFilename);
 fs      = stInfo.SampleRate;
-FID     = fopen(szFilename,'r');
+FID     = fopen(szFilename,'r','b');
 if FID == -1
     error('Can not read file. Is the path correct?')
 end
