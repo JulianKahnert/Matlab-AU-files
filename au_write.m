@@ -1,4 +1,4 @@
-function [] = au_write(szFilename,y,fs,szEncoding)
+function [] = au_write(szFilename,y,fs,szEncoding,vInterval)
 %AU_WRITE Write audiodata in an au-file.
 %
 % [] = AU_WRITE(szFilename,y,fs)
@@ -44,8 +44,14 @@ function [] = au_write(szFilename,y,fs,szEncoding)
 
 %% input check
 
-if nargin < 4
-    szEncoding = 'int16';
+% defaul input settings
+szEncoding_default  = 'int16';
+vInterval_default   = [1 Inf];
+if nargin < 4 || isempty(szEncoding)
+    szEncoding = szEncoding_default;
+end
+if nargin < 5 || isempty(vInterval)
+    vInterval = vInterval_default;
 end
 
 % variable values
@@ -56,30 +62,60 @@ iSamples_total  = iCH * iSamples;
 caEncoding = [];
 load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
 
-iRowEncoding    = strcmpi(szEncoding,caEncoding(:,2));
-iEncoding       = caEncoding{iRowEncoding,1};
-iBitsPerSample  = caEncoding{iRowEncoding,3};
-szFormat        = caEncoding{iRowEncoding,6};
 
-% fixed values
-szMagicNumber   = '.snd';
+if ~exist(szFilename,'file') || all(vInterval == vInterval_default)
+    iRowEncoding    = strcmpi(szEncoding,caEncoding(:,2));
+    iEncoding       = caEncoding{iRowEncoding,1};
+    iBitsPerSample  = caEncoding{iRowEncoding,3};
+    szFormat        = caEncoding{iRowEncoding,6};
 
-[szPath,szName,szExt]= fileparts(szFilename);
-if isempty(szExt) || ~strcmp(szExt,'.au')
-    warning('Wrong file-ending! New filename: ''%s''\n',[szName '.au'])
-    szFilename = fullfile(szPath,[szName '.au']);
+    % fixed values
+    szMagicNumber   = '.snd';
+
+    [szPath,szName,szExt]= fileparts(szFilename);
+    if isempty(szExt) || ~strcmp(szExt,'.au')
+        warning('Wrong file-ending! New filename: ''%s''\n',[szName '.au'])
+        szFilename = fullfile(szPath,[szName '.au']);
+    end
+
+    % write header, if file does not exist
+    FID  = fopen(szFilename,'w','b');
+    fwrite(FID,int32(szMagicNumber),'uchar');          % 0 magic number
+    fwrite(FID,24,                  'uint32');         % 1 data offset
+    fwrite(FID,intmax('uint32'),    'uint32');         % 2 data size
+    fwrite(FID,iEncoding,           'uint32');         % 3 encoding
+    fwrite(FID,fs,                  'uint32');         % 4 sample rate
+    fwrite(FID,iCH,                 'uint32');         % 5 channels
+    
+else
+    % get information, if file exists
+    stInfo          = au_info(szFilename);
+    if stInfo.NumChannels ~= size(y,2)
+            error('Number of channels in existing file and input matrix dismatch!')
+    end
+    
+    iEncoding       = stInfo.Encoding;
+    iRowEncoding    = find([caEncoding{:,1}] == iEncoding);
+    iBitsPerSample  = caEncoding{iRowEncoding,3};
+    szFormat        = caEncoding{iRowEncoding,6};
+    
+    if vInterval(1) == Inf
+        % case: append samples
+        FID         = fopen(szFilename,'a','b');
+    
+    else
+        % case: change samples in interval
+        if vInterval(2)-vInterval(1)+1 ~= size(y,1)
+            error('Number of samples in interval and rows of input matrix dismatch!')
+        end
+        FID         = fopen(szFilename,'r+','b');
+        % define frist byte in the desired interval and jump to it
+        iOffset_B   = stInfo.DataOffset + ...
+            (vInterval(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
+        fseek(FID,iOffset_B,'bof');
+        
+    end
 end
-
-
-%% write header
-
-FID = fopen(szFilename,'w','b');
-fwrite(FID,int32(szMagicNumber),'uchar');          % 0 magic number
-fwrite(FID,24,                  'uint32');         % 1 data offset
-fwrite(FID,intmax('uint32'),    'uint32');         % 2 data size
-fwrite(FID,iEncoding,           'uint32');         % 3 encoding
-fwrite(FID,fs,                  'uint32');         % 4 sample rate
-fwrite(FID,iCH,                 'uint32');         % 5 channels
 
 
 %% write data

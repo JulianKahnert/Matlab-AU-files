@@ -171,12 +171,94 @@ function testWrite_bitDepths(testCase)
         
         if any(y1(:) ~= y2(:))
             plot(y1 - y2)
-            keyboard
             title('Difference between signals: ref - new')
             error('ATTENTION: Saved vectors are not identical!!')
         end
     end
     
+end
+
+function testWrite_interval_CH1(testCase)
+% WRITE: specified interval 1 channel
+    szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+        'test_writeInterval_CH3.au');
+
+    vInterval   = [2 4];
+    iCH         = 1;
+
+    % reference signal
+    y_ref       = ones(10,iCH)/2;
+    au_write(szFile_new,y_ref,44100)
+
+    % generate new signal
+    iNumSamples = vInterval(2)-vInterval(1)+1;
+    y_new       = repmat(linspace(0,1/4,iCH),iNumSamples,1);
+    y_1         = [y_ref(1:vInterval(1)-1,:);...
+        y_new;...
+        y_ref(vInterval(2)+1:end,:)];
+
+    % write interval
+    au_write(szFile_new,y_new,44100,[],vInterval)
+    y_2         = au_read(szFile_new);
+
+    if any(any(y_1 ~= y_2))
+        error('Write interval (CH1): Data corrupt!')
+    end
+end
+
+function testWrite_interval_CH3(testCase)
+% WRITE: specified interval 3 channels
+    szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+        'test_writeInterval_CH3.au');
+
+    vInterval   = [2 4];
+    iCH         = 3;
+
+    % reference signal
+    y_ref       = ones(10,iCH)/2;
+    au_write(szFile_new,y_ref,44100)
+
+    % generate new signal
+    iNumSamples = vInterval(2)-vInterval(1)+1;
+    y_new       = repmat(linspace(0,1/4,iCH),iNumSamples,1);
+    y_1         = [y_ref(1:vInterval(1)-1,:);...
+        y_new;...
+        y_ref(vInterval(2)+1:end,:)];
+
+    % write interval
+    au_write(szFile_new,y_new,44100,[],vInterval)
+    y_2         = au_read(szFile_new);
+
+    if any(any(y_1 ~= y_2))
+        error('Write interval (CH2): Data corrupt!')
+    end
+end
+
+function testWrite_append(testCase)
+% WRITE: append data
+    szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+        'test_writeInterval_append.au');
+
+    vInterval   = [Inf 4];
+    iCH         = 3;
+
+    % reference signal
+    y_ref       = ones(10,iCH)/2;
+    au_write(szFile_new,y_ref,44100)
+
+    % generate new signal
+    iNumSamples = 3;
+    y_new       = repmat(linspace(0,1/4,iCH),iNumSamples,1);
+    y_1         = [y_ref;...
+        y_new];
+
+    % write interval
+    au_write(szFile_new,y_new,44100,[],vInterval)
+    y_2 = au_read(szFile_new);
+
+    if any(any(y_1 ~= y_2))
+        error('Append data: Data corrupt!')
+    end
 end
 
 
