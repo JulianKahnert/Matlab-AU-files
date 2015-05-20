@@ -1,12 +1,15 @@
 # AU-Files in Matlab
 These Matlab functions are based on the syntax of Matlabs `audio*` functions and will allow you to read and save your audio data in au-files.
 
-Since the [AU file format](https://en.wikipedia.org/wiki/Au_file_format/) has no file size limit, it is an easy to use file format even for large files. The following functions are intended to work like the matlab built-in audio functions, such as `audioread`, `audiowrite` and `audioinfo`.
+Since the [AU file format](https://en.wikipedia.org/wiki/Au_file_format/) has no file size limit, it is an easy to use file format even for large files. The following functions are intended to work like the Matlab built-in audio functions, such as `audioread`, `audiowrite` and `audioinfo`.
 
-Whereas the advantage of these functions are, that they are built on standard matlab-code, so that there is no fear of a *will be removed in a future release*-warning! Furthermore, they will support more au-encodings.
+Whereas the advantage of these functions are, that they are built on standard Matlab-code, so that there is no fear of a *will be removed in a future release*-warning! Furthermore, they will support more au-encodings.
 
 ## au_info
-	[stInfo] = au_info(szFilename)
+```octave
+[stInfo] = au_info(szFilename)
+```
+
 The `au_info` function returns information of an au-file as a struct with the fieldnames:
 
 * Filename
@@ -24,7 +27,7 @@ The `au_info` function returns information of an au-file as a struct with the fi
 ## au_read
 This function is similiar sturctured as the Matlab equivalent.
 ```
-	[y, fs] = au_write(szFilename,vInterval_smp)
+[y, fs] = au_write(szFilename,vInterval_smp)
 ```
 
 ## au_write
@@ -36,7 +39,7 @@ This function is similiar sturctured as the Matlab equivalent (audiowrite). With
 * 'int32'
 
 ```
-	[] = au_write(szFilename,y,fs,szEncoding)
+au_write(szFilename,y,fs,szEncoding)
 ```
 
 
@@ -45,7 +48,7 @@ Unit test for all the features, which are implemented. If you want to run these 
 
 
 ---------------
-Please and contact me at <mailto:JTKahnert@icloud.com> for additional questions.
+Please open an issues for additional questions.
 
 ---------------
 This projected is licensed under the terms of the MIT license.

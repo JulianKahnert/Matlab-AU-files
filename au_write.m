@@ -1,14 +1,14 @@
-function [] = au_write(szFilename,y,fs,szEncoding,vInterval)
+function au_write(szFilename,data,fs,szEncoding,vInterval)
 %AU_WRITE Write audiodata in an au-file.
 %
-% [] = AU_WRITE(szFilename,y,fs)
+% AU_WRITE(szFilename,data,fs,szEncoding,vInterval)
 %
 %   szFilename:
 %       String which contains the name of the au-file, that should be
 %       created. If a path is specified, it can be absolute, relative, or
 %       partial.
 %
-%   y:
+%   data:
 %       Vector or matrix which contains the audio data, specified as an
 %       m-by-n matrix, where m is the number of audio samples to write and
 %       n is the number of audio channels to write.
@@ -22,23 +22,23 @@ function [] = au_write(szFilename,y,fs,szEncoding,vInterval)
 %       'int32'
 %       'single'
 %       'double'
+%   vInterval
 %
-%   See also: au_info, au_read
+%   See also: au_info, au_read, 
 
 %--------------------------------------------------------------------------
-% This projected is licensed under the terms of the MIT license.
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
+% Author: Julian Kahnert (c) TGM @ Jade Hochschule
 % Version History:
-% Ver. 0.01 initial create                                   29-Apr-2015 JK
-% Ver. 0.02 help update                                      06-May-2015 JK
-% Ver. 1.0.0 first mayor release                             19-May-2015 JK
+% Ver. 0.1.0 initial create                                  29-Apr-2015 JK
+% Ver. 0.2.0 help update                                     06-May-2015 JK
+% Ver. 0.3.0 first mayor release                             19-May-2015 JK
 %--------------------------------------------------------------------------
 % To-Do:
-%   * check if .au extension is missing and attends it automatically
+%   * check if .au extension is missing and appends it automatically
 %   * check if reshape really increases performance
 %   * error message, if aufile could not be written
-%   * blockwise writing
 %--------------------------------------------------------------------------
 
 
@@ -55,7 +55,7 @@ if nargin < 5 || isempty(vInterval)
 end
 
 % variable values
-[iSamples,iCH]  = size(y);
+[iSamples,iCH]  = size(data);
 iSamples_total  = iCH * iSamples;
 
 % {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
@@ -74,23 +74,22 @@ if ~exist(szFilename,'file') || all(vInterval == vInterval_default)
 
     [szPath,szName,szExt]= fileparts(szFilename);
     if isempty(szExt) || ~strcmp(szExt,'.au')
-        warning('Wrong file-ending! New filename: ''%s''\n',[szName '.au'])
         szFilename = fullfile(szPath,[szName '.au']);
     end
 
     % write header, if file does not exist
-    FID  = fopen(szFilename,'w','b');
-    fwrite(FID,int32(szMagicNumber),'uchar');          % 0 magic number
-    fwrite(FID,24,                  'uint32');         % 1 data offset
-    fwrite(FID,intmax('uint32'),    'uint32');         % 2 data size
-    fwrite(FID,iEncoding,           'uint32');         % 3 encoding
-    fwrite(FID,fs,                  'uint32');         % 4 sample rate
-    fwrite(FID,iCH,                 'uint32');         % 5 channels
+    fid  = fopen(szFilename,'w','b');
+    fwrite(fid,int32(szMagicNumber),'uchar');          % 0 magic number
+    fwrite(fid,24,                  'uint32');         % 1 data offset
+    fwrite(fid,intmax('uint32'),    'uint32');         % 2 data size
+    fwrite(fid,iEncoding,           'uint32');         % 3 encoding
+    fwrite(fid,fs,                  'uint32');         % 4 sample rate
+    fwrite(fid,iCH,                 'uint32');         % 5 channels
     
 else
     % get information, if file exists
     stInfo          = au_info(szFilename);
-    if stInfo.NumChannels ~= size(y,2)
+    if stInfo.NumChannels ~= size(data,2)
             error('Number of channels in existing file and input matrix dismatch!')
     end
     
@@ -101,18 +100,18 @@ else
     
     if vInterval(1) == Inf
         % case: append samples
-        FID         = fopen(szFilename,'a','b');
+        fid = fopen(szFilename,'a','b');
     
     else
         % case: change samples in interval
-        if vInterval(2)-vInterval(1)+1 ~= size(y,1)
+        if vInterval(2)-vInterval(1)+1 ~= size(data,1)
             error('Number of samples in interval and rows of input matrix dismatch!')
         end
-        FID         = fopen(szFilename,'r+','b');
-        % define frist byte in the desired interval and jump to it
-        iOffset_B   = stInfo.DataOffset + ...
+        fid = fopen(szFilename,'r+','b');
+        % define first byte in the desired interval and jump to it
+        iOffset = stInfo.DataOffset + ...
             (vInterval(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
-        fseek(FID,iOffset_B,'bof');
+        fseek(fid,iOffset,'bof');
         
     end
 end
@@ -120,26 +119,13 @@ end
 
 %% write data
 
-% quantisation
-max_amp = 2^(iBitsPerSample-1);
-quant_data = round(y*max_amp);
-
-% check for possible clipping:
-nclips = numel(find( quant_data<-max_amp | quant_data >=max_amp ));
-if nclips > 0,
-  warning(['your data block exhibits %d clipped sample(s), '...
-      'of %d samples in total\n'], nclips, iSamples_total);
-  % no explicit clipping necessayr here, as clipping is
-  % automatically performed by fwrite later 
-end
-
 % for a higher speed:  
 % in case of stereo data, reshape them into 1 long column  
 if iCH > 1,
-  quant_data = reshape(quant_data', iSamples_total, 1);
+  data = reshape(data', iSamples_total, 1);
 end
 
-fwrite(FID, quant_data, szFormat);
-
-fclose(FID);
+%#% falls int strcmp(sz(1:3),'int')
+fwrite(fid, data*2^(iBitsPerSample-1), szFormat);
+fclose(fid);
 

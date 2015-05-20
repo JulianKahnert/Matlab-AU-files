@@ -13,40 +13,39 @@ function [stInfo] = au_info(szFilename)
 %   See also: au_read, au_write.
 
 %--------------------------------------------------------------------------
-% This projected is licensed under the terms of the MIT license.
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
+% Author: Julian Kahnert (c) TGM @ Jade Hochschule
 % Version History:
-% Ver. 0.01 initial create                                   05-May-2015 JK
-% Ver. 0.02 help update                                      06-May-2015 JK
-% Ver. 1.0.0 first mayor release                             19-May-2015 JK
+% Ver. 0.1.0 initial create                                  05-May-2015 JK
+% Ver. 0.2.0 help update                                     06-May-2015 JK
+% Ver. 0.3.0 first mayor release                             19-May-2015 JK
 %--------------------------------------------------------------------------
 
 
 %% read header from file
 
-FID             = fopen(szFilename,'r');
-if FID == -1
+fid = fopen(szFilename,'r');
+if fid == -1
     error('Can not read file. Is the path correct?')
 end
-szMagicNumber   = fread(FID,4,'*char',0,'b');
-iDataOffset     = fread(FID,1,'uint32',0,'b');
-fseek(FID,4,'cof');                             % 2 data size
-iEncoding       = fread(FID,1,'uint32',0,'b');
-iSampleRate     = fread(FID,1,'uint32',0,'b');
-iChannels       = fread(FID,1,'uint32',0,'b');
-
-szPath          = fopen(FID);
-stFile          = dir(szPath);
-iDataSize       = stFile.bytes - iDataOffset;
-fclose(FID);
-
-
-%% show warnings if the data is corrupt
-
-if ~strcmp(szMagicNumber.','.snd')
+magicnumber = fread(fid,4,'uint8',0,'b');
+if ~all(magicnumber' == uint8('.snd'))
+    fclose(fid);
     error('Header of the file corrupt. Is it a au-file?')
 end
+iDataOffset     = fread(fid,1,'uint32',0,'b');
+iDataSize       = fread(fid,1,'uint32',0,'b');  % ignored
+iEncoding       = fread(fid,1,'uint32',0,'b');
+iSampleRate     = fread(fid,1,'uint32',0,'b');
+iChannels       = fread(fid,1,'uint32',0,'b');
+
+% get absolute file path
+szAbsPath = fopen(fid);
+fclose(fid);
+% get file size
+stFile = dir(szAbsPath);
+iDataSize = stFile.bytes - iDataOffset;
 
 
 %% write info struct
@@ -58,17 +57,17 @@ load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
 iRowEncoding    = find([caEncoding{:,1}]==iEncoding);
 iBitsPerSample  = caEncoding{iRowEncoding,3};
 stInfo          = struct(...
-    'Filename',             szPath,...
-    'CompressionMethod',    caEncoding{iRowEncoding,4},...
-    'NumChannels',          iChannels,...
-    'SampleRate',           iSampleRate,...
-    'TotalSamples',         iDataSize*8 / iBitsPerSample / iChannels,...
-    'Duration',             iDataSize*8 / iBitsPerSample / iSampleRate / iChannels,...
-    'Title',                [],...
-    'Comment',              [],...
-    'Artist',               [],...
-    'BitsPerSample',        iBitsPerSample,...
-    'DataOffset',           iDataOffset,...
-    'Encoding',             iEncoding,...
+    'Filename',             szAbsPath, ...
+    'CompressionMethod',    caEncoding{iRowEncoding,4}, ...
+    'NumChannels',          iChannels, ...
+    'SampleRate',           iSampleRate, ...
+    'TotalSamples',         iDataSize*8 / iBitsPerSample / iChannels, ...
+    'Duration',             iDataSize*8 / iBitsPerSample / iSampleRate / iChannels, ...
+    'Title',                [], ...
+    'Comment',              [], ...
+    'Artist',               [], ...
+    'BitsPerSample',        iBitsPerSample, ...
+    'DataOffset',           iDataOffset, ...
+    'Encoding',             iEncoding, ...
     'EncodingDescription',  caEncoding{iRowEncoding,end});
 
