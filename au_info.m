@@ -5,6 +5,9 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 %   a string that specifies the name of the audio file, it can be absolute,
 %   relative, or partial.
 %
+%   Usage:
+%       [stInfo, iDataOffset, iDataSize] = au_info('testfile.au')
+%
 %   The first ten fields of the struct are same as in the Matlab function
 %   audioinfo. The last field is au-specific:
 %
@@ -21,7 +24,7 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 %                       values are 8,16,24,32, or 64.
 %
 %   'Datatype'          Format in which the values should be written. Valid
-%                       strings are mu, int8, int16, int24, int32, float32
+%                       strings are int8, int16, int24, int32, float32
 %                       or float64.
 %
 %   DATAOFFSET returns the offset after which the audiodata starts, it is

@@ -1,32 +1,29 @@
 function au_write(szFilename, data, fs, vRange, szDatatype)
-%AU_WRITE Write audiodata in an au-file.
+%AU_WRITE Write data in an au-file.
+%   AU_WRITE(FILENAME, DATA, FS) writes the audio data in DATA with a given
+%   FS in a au-file, which was specified by the string FILENAME. If a
+%   au-file with FILENAME already exists, it will be overwritten.
+
+%   AU_WRITE(FILENAME, DATA, FS, [START END]) writes the DATA in the
+%   interval START through END for each channel in the file. If you set
+%   START to Inf, AU_WRITE will append DATA on an existing au-file.
+%   Furthermore AU_WRITE will overwrite all existing samples if: 
+%       [START END] = [1 Inf], or
+%       [START END] = []
 %
-% AU_WRITE(szFilename, data, fs, vRange, szDatatype)
+%   AU_WRITE(FILENAME, DATA, FS, [START END], DATATYPE) writes a au-file
+%   with a specified DATATYPE. Valid strings are mu, int8, int16, int24,
+%   int32, float32 or float64.
+%   
+%   Output Data Ranges
+%   DATA should be a m-by-n matrix, where m is the number of audio samples
+%   read and n is the number of audio channels in the file.
 %
-%   szFilename:
-%       String which contains the name of the au-file, that should be
-%       created. If a path is specified, it can be absolute, relative, or
-%       partial.
+%   Note:
+%   * If datatype is a kind if int, samples >1 or <(-1) will be clipped.
+%   * END automatically set: END = START+size(DATA,1)
 %
-%   data:
-%       Vector or matrix which contains the audio data, specified as an
-%       m-by-n matrix, where m is the number of audio samples to write and
-%       n is the number of audio channels to write.
-%   fs:
-%       Samplerate of you audio data.
-%   szEncoding:
-%       'mu'
-%       'int8'
-%       'int16'
-%       'int24'
-%       'int32'
-%       'single'
-%       'double'
-%   vRange
-%
-% ATTENTION: second interval automatically set!
-%
-%   See also: au_info, au_read, audioinfo, audioread, audiowrite
+%   See also: au_info, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % This project is licensed under the terms of the MIT license.
