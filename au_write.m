@@ -14,7 +14,13 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 %   AU_WRITE(FILENAME, DATA, FS, [START END], DATATYPE) writes a au-file
 %   with a specified DATATYPE. Valid strings are mu, int8, int16, int24,
 %   int32, float32 or float64.
-%   
+%
+%   Usage:
+%       au_write('testfile.au',rand(10*44100,2)-.5)
+%       au_write('testfile.au',.9*ones(5,2),[3 7])
+%       au_write('testfile.au',rand(10*44100,2)-.5,'int32')
+%       au_write('testfile.au',rand(10*44100,2)-.5,'float64')
+%
 %   Output Data Ranges
 %   DATA should be a m-by-n matrix, where m is the number of audio samples
 %   read and n is the number of audio channels in the file.
