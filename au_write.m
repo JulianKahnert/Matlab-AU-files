@@ -12,7 +12,7 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 %       [START END] = []
 %
 %   AU_WRITE(FILENAME, DATA, FS, [START END], DATATYPE) writes a au-file
-%   with a specified DATATYPE. Valid strings are mu, int8, int16, int24,
+%   with a specified DATATYPE. Valid strings are int8, int16, int24,
 %   int32, float32 or float64.
 %
 %   Usage:

@@ -1,4 +1,4 @@
-%AU_TEST Unit-test of metadata of au_info, au_read and au_write.
+%AU_TEST Unit-test of au_info, au_read and au_write.
 %
 %   To test the integrity of the au_* functions, run:
 %       runtests('au_test.m')

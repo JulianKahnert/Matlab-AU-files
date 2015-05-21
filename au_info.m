@@ -27,7 +27,7 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 %                       strings are int8, int16, int24, int32, float32
 %                       or float64.
 %
-%   DATAOFFSET returns the offset after which the audiodata starts, it is
+%   DATAOFFSET returns the offset after which the audio data starts, it is
 %   equal to the size of the header. DATASIZE is specified as the size of
 %   the au data.
 %
