@@ -1,74 +1,103 @@
-function [stInfo] = au_info(szFilename)
-%AU_INFO Returns metadata of an au-file.
+function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
+%AU_INFO Metadata of a au-file.
+%   [INFO, DATAOFFSET, DATASIZE] = AU_INFO(FILENAME) returns a struct with
+%   fields which contain information about a specified au-file. FILENAME is
+%   a string that specifies the name of the audio file, it can be absolute,
+%   relative, or partial.
 %
-%   stInfo = AU_INFO(szFilename)
+%   Usage:
+%       [stInfo, iDataOffset, iDataSize] = au_info('testfile.au')
 %
-%   szFilename:
-%       String which contains the name of the au-file. If a path is
-%       specified, it can be absolute, relative, or partial.
+%   The first ten fields of the struct are same as in the Matlab function
+%   audioinfo. The last field is au-specific:
 %
-%   stInfo:
-%       Struct which contains the relevant information about the au-file.
+%   'Filename'          A string containing the name of the file
+%   'CompressionMethod' Method of audio compression in the file
+%   'NumChannels'       Number of audio channels in the file.
+%   'SampleRate'        The sample rate (in Hertz) of the data in the file.
+%   'TotalSamples'      Total number of audio samples in the file.
+%   'Duration'          Total duration in seconds of the audio in the file.
+%   'Title'             Always empty for au-files.
+%   'Comment'           Always empty for au-files.
+%   'Artist'            Always empty for au-files.
+%   'BitsPerSample'     Number of bits per sample in the au-file. Valid
+%                       values are 8,16,24,32, or 64.
 %
-%   See also: au_read, au_write.
+%   'Datatype'          Format in which the values should be written. Valid
+%                       strings are int8, int16, int24, int32, float32
+%                       or float64.
+%
+%   DATAOFFSET returns the offset after which the audio data starts, it is
+%   equal to the size of the header. DATASIZE is specified as the size of
+%   the au data.
+%
+%   See also: au_read, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
-% This projected is licensed under the terms of the MIT license.
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
+% Author: Julian Kahnert (c) TGM @ Jade Hochschule
 % Version History:
-% Ver. 0.01 initial create                                   05-May-2015 JK
-% Ver. 0.02 help update                                      06-May-2015 JK
-% Ver. 1.0.0 first mayor release                             19-May-2015 JK
+% Ver. 0.1.0 initial create                                  05-May-2015 JK
+% Ver. 0.2.0 help update                                     06-May-2015 JK
+% Ver. 0.3.0 first mayor release                             19-May-2015 JK
+% Ver. 0.4.0 new structure + avoid load('*.mat')             21-May-2015 JK
 %--------------------------------------------------------------------------
 
 
 %% read header from file
 
-FID             = fopen(szFilename,'r');
-if FID == -1
+fid = fopen(szFilename, 'r');
+if fid == -1
     error('Can not read file. Is the path correct?')
 end
-szMagicNumber   = fread(FID,4,'*char',0,'b');
-iDataOffset     = fread(FID,1,'uint32',0,'b');
-fseek(FID,4,'cof');                             % 2 data size
-iEncoding       = fread(FID,1,'uint32',0,'b');
-iSampleRate     = fread(FID,1,'uint32',0,'b');
-iChannels       = fread(FID,1,'uint32',0,'b');
-
-szPath          = fopen(FID);
-stFile          = dir(szPath);
-iDataSize       = stFile.bytes - iDataOffset;
-fclose(FID);
-
-
-%% show warnings if the data is corrupt
-
-if ~strcmp(szMagicNumber.','.snd')
+magicnumber = fread(fid, 4, 'uint8', 0, 'b');
+if ~all(magicnumber' == uint8('.snd'))
+    fclose(fid);
     error('Header of the file corrupt. Is it a au-file?')
 end
+iDataOffset = fread(fid, 1, 'uint32', 0, 'b');
+iDataSize   = fread(fid, 1, 'uint32', 0, 'b');      %#ok overwrite later
+iEncoding   = fread(fid, 1, 'uint32', 0, 'b');
+iSampleRate = fread(fid, 1, 'uint32', 0, 'b');
+iChannels   = fread(fid, 1, 'uint32', 0, 'b');
+
+% get absolute file path
+szAbsPath = fopen(fid);
+fclose(fid);
+% get file size
+stFile = dir(szAbsPath);
+iDataSize = stFile.bytes - iDataOffset;
 
 
 %% write info struct
 
-% {iEncoding, szEncoding, iBitsPerSample, fwritePrecission, szCompression, bSupported, szDescription}
-caEncoding = [];
-load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
+% Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
+stDetails = struct( ...
+    'mu',       {1, '',        8,  'u-law',        false}, ...
+    'int8',     {2, 'bit8',    8,  'Uncompressed', true},  ...
+    'int16',    {3, 'bit16'    16, 'Uncompressed', true},  ...
+    'int24',    {4, 'bit24',   24, 'Uncompressed', true},  ...
+    'int32',    {5, 'bit32',   32, 'Uncompressed', true},  ...
+    'float32',  {6, 'float32', 32, 'Uncompressed', true},  ...
+    'float64',  {7, 'float64', 64, 'Uncompressed', true}   ...
+    );
 
-iRowEncoding    = find([caEncoding{:,1}]==iEncoding);
-iBitsPerSample  = caEncoding{iRowEncoding,3};
-stInfo          = struct(...
-    'Filename',             szPath,...
-    'CompressionMethod',    caEncoding{iRowEncoding,4},...
-    'NumChannels',          iChannels,...
-    'SampleRate',           iSampleRate,...
-    'TotalSamples',         iDataSize*8 / iBitsPerSample / iChannels,...
-    'Duration',             iDataSize*8 / iBitsPerSample / iSampleRate / iChannels,...
-    'Title',                [],...
-    'Comment',              [],...
-    'Artist',               [],...
-    'BitsPerSample',        iBitsPerSample,...
-    'DataOffset',           iDataOffset,...
-    'Encoding',             iEncoding,...
-    'EncodingDescription',  caEncoding{iRowEncoding,end});
+szDatatype  = fieldnames(stDetails);
+szDatatype  = szDatatype{iEncoding};
+iBitsPerSample = stDetails(3).(szDatatype);
 
+stInfo = struct(...
+    'Filename',             szAbsPath, ...
+    'CompressionMethod',    stDetails(4).(szDatatype), ...
+    'NumChannels',          iChannels, ...
+    'SampleRate',           iSampleRate, ...
+    'TotalSamples',         iDataSize*8 / iBitsPerSample / iChannels, ...
+    'Duration',             iDataSize*8 / iBitsPerSample / iSampleRate / iChannels, ...
+    'Title',                [], ...
+    'Comment',              [], ...
+    'Artist',               [], ...
+    'BitsPerSample',        iBitsPerSample, ...
+    'Datatype',             szDatatype);
+
+end
