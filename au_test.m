@@ -27,16 +27,16 @@ end
 
 function testInfo(testCase)
     for i =1:numel(testCase.TestData.stFiles_all)
-        szPath  = fullfile(...
-            testCase.TestData.szPath,...
+        szPath  = fullfile( ...
+            testCase.TestData.szPath, ...
             testCase.TestData.stFiles_all(i).name);
         stInfo1 = au_info(szPath);
         stInfo2 = audioinfo(szPath);
 
-        if ~strcmp(stInfo1.Filename,stInfo2.Filename)
+        if ~strcmp(stInfo1.Filename, stInfo2.Filename)
             error('Filename not consistent!')
         end
-        if ~strcmp(stInfo1.CompressionMethod,stInfo2.CompressionMethod)
+        if ~strcmp(stInfo1.CompressionMethod, stInfo2.CompressionMethod)
             error('CompressionMethod not consistent!')
         end
         if stInfo1.NumChannels ~= stInfo2.NumChannels
@@ -63,15 +63,15 @@ end
 function testRead(testCase)
 % READ: read data without interval
     for i =1:numel(testCase.TestData.stFiles_all)
-        szPath  = fullfile(...
-            testCase.TestData.szPath,...
+        szPath  = fullfile( ...
+            testCase.TestData.szPath, ...
             testCase.TestData.stFiles_all(i).name);
-        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+        if strcmp(testCase.TestData.stFiles_all(i).name, 'test_MU.au')
             warning('mu-law not yet supported')
             return;
         end
-        [y1,fs1] = au_read(szPath);
-        [y2,fs2] = audioread(szPath);
+        [y1, fs1] = au_read(szPath);
+        [y2, fs2] = audioread(szPath);
 
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
             error('Data corrupt!')
@@ -83,15 +83,15 @@ function testReadInterval1(testCase)
 % READ: read data with interval (1)
     vSamples= [2 5];
     for i =1:numel(testCase.TestData.stFiles_all)
-        szPath  = fullfile(...
-            testCase.TestData.szPath,...
+        szPath  = fullfile( ...
+            testCase.TestData.szPath, ...
             testCase.TestData.stFiles_all(i).name);
-        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+        if strcmp(testCase.TestData.stFiles_all(i).name, 'test_MU.au')
             warning('mu-law not yet supported')
             return;
         end
-        [y1,fs1] = au_read(szPath,vSamples);
-        [y2,fs2] = audioread(szPath,vSamples);
+        [y1, fs1] = au_read(szPath, vSamples);
+        [y2, fs2] = audioread(szPath, vSamples);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
             error('Data corrupt!')
@@ -103,15 +103,15 @@ function testReadInterval2(testCase)
 % READ: read data with interval (2)
     vSamples= [3 Inf];
     for i =1:numel(testCase.TestData.stFiles_all)
-        szPath  = fullfile(...
-            testCase.TestData.szPath,...
+        szPath  = fullfile( ...
+            testCase.TestData.szPath, ...
             testCase.TestData.stFiles_all(i).name);
-        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+        if strcmp(testCase.TestData.stFiles_all(i).name, 'test_MU.au')
             warning('mu-law not yet supported')
             return;
         end
-        [y1,fs1] = au_read(szPath,vSamples);
-        [y2,fs2] = audioread(szPath,vSamples);
+        [y1, fs1] = au_read(szPath, vSamples);
+        [y2, fs2] = audioread(szPath, vSamples);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
             error('Data corrupt!')
@@ -125,21 +125,21 @@ end
 function testWrite_all(testCase)
 % WRITE: different channel/sample-rate configurations + clipping
     for i =1:numel(testCase.TestData.stFiles_all)
-        szPath      = fullfile(...
-            testCase.TestData.szPath,...
+        szPath      = fullfile( ...
+            testCase.TestData.szPath, ...
             testCase.TestData.stFiles_all(i).name);
-        szFile_new  = fullfile(testCase.TestData.szPath_tmp,...
+        szFile_new  = fullfile(testCase.TestData.szPath_tmp, ...
             [testCase.TestData.stFiles_all(i).name(1:end-3) '_test.au']);
         % reference file
-        [y1,fs1] = audioread(szPath);
+        [y1, fs1] = audioread(szPath);
         
         % self-generated file
-        au_write(szFile_new,y1,fs1)
-        if ~exist(szFile_new,'file')
+        au_write(szFile_new, y1, fs1)
+        if ~exist(szFile_new, 'file')
             keyboard
             error('Au-file not written!')
         end
-        [y2,fs2] = audioread(szFile_new);
+        [y2, fs2] = audioread(szFile_new);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
             plot(y1 - y2)
@@ -156,18 +156,18 @@ function testWrite_bitDepths(testCase)
     caDatatypes = caDatatypes(struct2array(testCase.TestData.stDetails(5)));
     for i = 1:numel(caDatatypes)
         iBitsPerSample = testCase.TestData.stDetails(3).(caDatatypes{i});
-        szFile_new = fullfile(testCase.TestData.szPath_tmp,...
+        szFile_new = fullfile(testCase.TestData.szPath_tmp, ...
             ['WriteTest_Bit' num2str(iBitsPerSample) '.au']);
         
         % reference signal
         y1 = 1./2.^(1:iBitsPerSample-1).';
         
         % self-generated file
-        au_write(szFile_new,y1,44100,[],caDatatypes{i})
-        if ~exist(szFile_new,'file')
+        au_write(szFile_new, y1, 44100, [], caDatatypes{i})
+        if ~exist(szFile_new, 'file')
             error('Au-file not written!')
         end
-        [y2,~] = audioread(szFile_new);
+        [y2, ~] = audioread(szFile_new);
         
         if any(y1(:) ~= y2(:))
             plot(y1 - y2)
@@ -180,25 +180,25 @@ end
 
 function testWrite_interval_CH1(testCase)
 % WRITE: specified interval 1 channel
-    szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+    szFile_new      = fullfile(testCase.TestData.szPath_tmp, ...
         'test_writeInterval_CH3.au');
 
     vInterval   = [2 4];
     iCH         = 1;
 
     % reference signal
-    y_ref       = ones(10,iCH)/2;
-    au_write(szFile_new,y_ref,44100)
+    y_ref       = ones(10, iCH)/2;
+    au_write(szFile_new, y_ref, 44100)
 
     % generate new signal
     iNumSamples = vInterval(2)-vInterval(1)+1;
-    y_new       = repmat(linspace(0,1/4,iCH),iNumSamples,1);
-    y_1         = [y_ref(1:vInterval(1)-1,:);...
-        y_new;...
-        y_ref(vInterval(2)+1:end,:)];
+    y_new       = repmat(linspace(0, 1/4, iCH), iNumSamples, 1);
+    y_1         = [y_ref(1:vInterval(1)-1, :); ...
+        y_new; ...
+        y_ref(vInterval(2)+1:end, :)];
 
     % write interval
-    au_write(szFile_new,y_new,44100,vInterval)
+    au_write(szFile_new, y_new, 44100, vInterval)
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -208,25 +208,25 @@ end
 
 function testWrite_interval_CH3(testCase)
 % WRITE: specified interval 3 channels
-    szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+    szFile_new      = fullfile(testCase.TestData.szPath_tmp, ...
         'test_writeInterval_CH3.au');
 
     vInterval   = [2 4];
     iCH         = 3;
 
     % reference signal
-    y_ref       = ones(10,iCH)/2;
-    au_write(szFile_new,y_ref,44100)
+    y_ref       = ones(10, iCH)/2;
+    au_write(szFile_new, y_ref, 44100)
 
     % generate new signal
     iNumSamples = vInterval(2)-vInterval(1)+1;
-    y_new       = repmat(linspace(0,1/4,iCH),iNumSamples,1);
-    y_1         = [y_ref(1:vInterval(1)-1,:);...
-        y_new;...
-        y_ref(vInterval(2)+1:end,:)];
+    y_new       = repmat(linspace(0, 1/4, iCH), iNumSamples, 1);
+    y_1         = [y_ref(1:vInterval(1)-1, :); ...
+        y_new; ...
+        y_ref(vInterval(2)+1:end, :)];
 
     % write interval
-    au_write(szFile_new,y_new,44100,vInterval)
+    au_write(szFile_new, y_new, 44100, vInterval)
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -236,24 +236,24 @@ end
 
 function testWrite_append(testCase)
 % WRITE: append data
-    szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+    szFile_new      = fullfile(testCase.TestData.szPath_tmp, ...
         'test_writeInterval_append.au');
 
     vInterval   = [Inf 4];
     iCH         = 3;
 
     % reference signal
-    y_ref       = ones(10,iCH)/2;
-    au_write(szFile_new,y_ref,44100)
+    y_ref       = ones(10, iCH)/2;
+    au_write(szFile_new, y_ref, 44100)
 
     % generate new signal
     iNumSamples = 3;
-    y_new       = repmat(linspace(0,1/4,iCH),iNumSamples,1);
-    y_1         = [y_ref;...
+    y_new       = repmat(linspace(0, 1/4, iCH), iNumSamples, 1);
+    y_1         = [y_ref; ...
         y_new];
 
     % write interval
-    au_write(szFile_new,y_new,44100,vInterval)
+    au_write(szFile_new, y_new, 44100, vInterval)
     y_2 = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -269,29 +269,29 @@ function setupOnce(testCase)  % do not change function name
     szPath          = fileparts(which('au_test.m'));
     cd(szPath)
     szPath = fileparts(which('au_test.m'));
-    szPath = fullfile(szPath,'audio_files');
+    szPath = fullfile(szPath, 'audio_files');
     cd(szPath)
-    szPath_tmp = fullfile(szPath,'temp');
-    if ~exist(szPath_tmp,'dir')
+    szPath_tmp = fullfile(szPath, 'temp');
+    if ~exist(szPath_tmp, 'dir')
         mkdir(szPath_tmp)
     end
     % Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
-    testCase.TestData.stDetails = struct(...
+    testCase.TestData.stDetails = struct( ...
         'mu',       {1, '',        8,  'u-law',        false}, ...
-        'int8',     {2, 'bit8',    8,  'Uncompressed', true}, ...
-        'int16',    {3, 'bit16'    16, 'Uncompressed', true}, ...
-        'int24',    {4, 'bit24',   24, 'Uncompressed', true}, ...
-        'int32',    {5, 'bit32',   32, 'Uncompressed', true}, ...
-        'float32',  {6, 'float32', 32, 'Uncompressed', true}, ...
-        'float64',  {7, 'float64', 64, 'Uncompressed', true} ...
+        'int8',     {2, 'bit8',    8,  'Uncompressed', true},  ...
+        'int16',    {3, 'bit16'    16, 'Uncompressed', true},  ...
+        'int24',    {4, 'bit24',   24, 'Uncompressed', true},  ...
+        'int32',    {5, 'bit32',   32, 'Uncompressed', true},  ...
+        'float32',  {6, 'float32', 32, 'Uncompressed', true},  ...
+        'float64',  {7, 'float64', 64, 'Uncompressed', true}   ...
         );
     testCase.TestData.szPath_tmp  = szPath_tmp;
     testCase.TestData.szPath      = szPath;
-    testCase.TestData.stFiles_all = dir(fullfile(szPath,'*.au'));
+    testCase.TestData.stFiles_all = dir(fullfile(szPath, '*.au'));
 
 end
 
 
 function teardownOnce(testCase)  % do not change function name
-    rmdir(testCase.TestData.szPath_tmp,'s')
+    rmdir(testCase.TestData.szPath_tmp, 's')
 end

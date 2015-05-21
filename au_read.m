@@ -1,7 +1,7 @@
-function [data, fs, stInfo] = au_read(szFilename,vRange)
+function [data, fs, stInfo] = au_read(szFilename, vRange)
 %AU_READ Read the audio data of an au-file.
 %
-%   [data, fs] = AU_READ(szFilename,vRange)
+%   [data, fs] = AU_READ(szFilename, vRange)
 %
 %   szFilename:
 %       String which contains the name of the au-file, that should be read.
@@ -41,14 +41,14 @@ if nargin < 2 || isempty(vRange)
 end
 
 % Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
-stDetails = struct(...
+stDetails = struct( ...
     'mu',       {1, '',        8,  'u-law',        false}, ...
-    'int8',     {2, 'bit8',    8,  'Uncompressed', true}, ...
-    'int16',    {3, 'bit16'    16, 'Uncompressed', true}, ...
-    'int24',    {4, 'bit24',   24, 'Uncompressed', true}, ...
-    'int32',    {5, 'bit32',   32, 'Uncompressed', true}, ...
-    'float32',  {6, 'float32', 32, 'Uncompressed', true}, ...
-    'float64',  {7, 'float64', 64, 'Uncompressed', true} ...
+    'int8',     {2, 'bit8',    8,  'Uncompressed', true},  ...
+    'int16',    {3, 'bit16'    16, 'Uncompressed', true},  ...
+    'int24',    {4, 'bit24',   24, 'Uncompressed', true},  ...
+    'int32',    {5, 'bit32',   32, 'Uncompressed', true},  ...
+    'float32',  {6, 'float32', 32, 'Uncompressed', true},  ...
+    'float64',  {7, 'float64', 64, 'Uncompressed', true}   ...
     );
 
 [stInfo, iDataOffset, iDataSize]  = au_info(szFilename);
@@ -86,18 +86,18 @@ end
 
 % define first byte in the desired interval and jump to it
 iOffset = iDataOffset + (vRange(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
-fseek(fid,iOffset,'bof');
+fseek(fid, iOffset, 'bof');
 
 % define length of the desired interval and read the samples
 iNum_smp= ( vRange(2)-vRange(1)+1 ) *stInfo.NumChannels;
-vSig    = fread(fid,iNum_smp,szFormat,0,'b');
+vSig    = fread(fid, iNum_smp, szFormat, 0, 'b');
 fclose(fid);
 
 % normalization in case of int*
-if strcmp(stInfo.Datatype(1:2),'in')
+if strcmp(stInfo.Datatype(1:2), 'in')
     vSig = vSig/2^(iBitsPerSample-1);
 end
 
-data = reshape(vSig,stInfo.NumChannels,[]).';
+data = reshape(vSig, stInfo.NumChannels,[]).';
 
 end
