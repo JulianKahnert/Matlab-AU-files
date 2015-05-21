@@ -26,7 +26,7 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 %
 % ATTENTION: second interval automatically set!
 %
-%   See also: au_info, au_read,
+%   See also: au_info, au_read, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % This project is licensed under the terms of the MIT license.

@@ -10,7 +10,7 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 %   stInfo:
 %       Struct which contains the relevant information about the au-file.
 %
-%   See also: au_read, au_write.
+%   See also: au_read, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % This project is licensed under the terms of the MIT license.

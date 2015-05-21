@@ -18,7 +18,7 @@ function [data, fs, stInfo] = au_read(szFilename, vRange)
 %   fs:
 %       Samplerate of you audio data.
 %
-%   See also: au_info, au_write
+%   See also: au_info, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % This project is licensed under the terms of the MIT license.

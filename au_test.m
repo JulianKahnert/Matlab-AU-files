@@ -3,21 +3,22 @@
 %   To test the integrity of the au_* functions, run:
 %       runtests('au_test.m')
 %
-%   See also: au_info, au_read, au_write.
+%   See also: au_info, au_read, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
-% This projected is licensed under the terms of the MIT license.
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
-% Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
+% Author: Julian Kahnert (c) TGM @ Jade Hochschule
 % Version History:
 % Ver. 0.1.0 initial create                                  05-May-2015 JK
 % Ver. 0.2.0 help update                                     06-May-2015 JK
 % Ver. 0.3.0 first mayor release                             19-May-2015 JK
 % Ver. 0.4.0 avoid load('*.mat')                             21-May-2015 JK
 %--------------------------------------------------------------------------
-% error while writing with szEncoding = 'single'
+
 
 %% Main function to generate tests
+
 function tests = tester_fun
 tests = functiontests(localfunctions);
 end
