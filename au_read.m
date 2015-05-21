@@ -27,7 +27,8 @@ function [data, fs, stInfo] = au_read(szFilename,vRange)
 % Version History:
 % Ver. 0.1.0 initial create                                  05-May-2015 JK
 % Ver. 0.2.0 help update                                     06-May-2015 JK
-% Ver. 1.0.0 first mayor release                             19-May-2015 JK
+% Ver. 0.3.0 first mayor release                             19-May-2015 JK
+% Ver. 0.4.0 new structure + avoid load('*.mat')             21-May-2015 JK
 %--------------------------------------------------------------------------
 
 

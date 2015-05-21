@@ -10,9 +10,10 @@
 %--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule applied licence see EOF
 % Version History:
-% Ver. 0.01 initial create                                   05-May-2015 JK
-% Ver. 0.02 help update                                      06-May-2015 JK
-% Ver. 1.0.0 first mayor release                             19-May-2015 JK
+% Ver. 0.1.0 initial create                                  05-May-2015 JK
+% Ver. 0.2.0 help update                                     06-May-2015 JK
+% Ver. 0.3.0 first mayor release                             19-May-2015 JK
+% Ver. 0.4.0 avoid load('*.mat')                             21-May-2015 JK
 %--------------------------------------------------------------------------
 % error while writing with szEncoding = 'single'
 
@@ -151,20 +152,18 @@ end
 
 function testWrite_bitDepths(testCase)
 % WRITE: different bit-depths
-    caEncoding = [];
-    load(fullfile(which(fileparts(mfilename('fullpath'))),'encoding.mat'))
-    
-    for idx = find([caEncoding{:,5}])
-        szEncoding      = caEncoding{idx,2};
-        iBitsPerSample  = caEncoding{idx,3};
-        szFile_new      = fullfile(testCase.TestData.szPath_tmp,...
+    caDatatypes = fieldnames(testCase.TestData.stDetails);
+    caDatatypes = caDatatypes(struct2array(testCase.TestData.stDetails(5)));
+    for i = 1:numel(caDatatypes)
+        iBitsPerSample = testCase.TestData.stDetails(3).(caDatatypes{i});
+        szFile_new = fullfile(testCase.TestData.szPath_tmp,...
             ['WriteTest_Bit' num2str(iBitsPerSample) '.au']);
         
         % reference signal
         y1 = 1./2.^(1:iBitsPerSample-1).';
         
         % self-generated file
-        au_write(szFile_new,y1,44100,[],szEncoding)
+        au_write(szFile_new,y1,44100,[],caDatatypes{i})
         if ~exist(szFile_new,'file')
             error('Au-file not written!')
         end
@@ -276,7 +275,16 @@ function setupOnce(testCase)  % do not change function name
     if ~exist(szPath_tmp,'dir')
         mkdir(szPath_tmp)
     end
-
+    % Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
+    testCase.TestData.stDetails = struct(...
+        'mu',       {1, '',        8,  'u-law',        false}, ...
+        'int8',     {2, 'bit8',    8,  'Uncompressed', true}, ...
+        'int16',    {3, 'bit16'    16, 'Uncompressed', true}, ...
+        'int24',    {4, 'bit24',   24, 'Uncompressed', true}, ...
+        'int32',    {5, 'bit32',   32, 'Uncompressed', true}, ...
+        'float32',  {6, 'float32', 32, 'Uncompressed', true}, ...
+        'float64',  {7, 'float64', 64, 'Uncompressed', true} ...
+        );
     testCase.TestData.szPath_tmp  = szPath_tmp;
     testCase.TestData.szPath      = szPath;
     testCase.TestData.stFiles_all = dir(fullfile(szPath,'*.au'));

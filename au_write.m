@@ -36,6 +36,7 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 % Ver. 0.1.0 initial create                                  29-Apr-2015 JK
 % Ver. 0.2.0 help update                                     06-May-2015 JK
 % Ver. 0.3.0 first mayor release                             19-May-2015 JK
+% Ver. 0.4.0 blockwise writing                               21-May-2015 JK
 %--------------------------------------------------------------------------
 
 
