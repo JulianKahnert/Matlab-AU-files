@@ -1,12 +1,12 @@
-function [data, fs, stInfo] = au_read(szFilename,vInterval_smp)
+function [data, fs, stInfo] = au_read(szFilename,vRange)
 %AU_READ Read the audio data of an au-file.
 %
-%   [data, fs] = AU_READ(szFilename,vInterval_smp)
+%   [data, fs] = AU_READ(szFilename,vRange)
 %
 %   szFilename:
 %       String which contains the name of the au-file, that should be read.
 %       If a path is specified, it can be absolute, relative, or partial.
-%   vInterval_smp:
+%   vRange:
 %       Two element vector [start end] which specifies the reading
 %       interval. Start represents the first and end the last sample in
 %       this interval.
@@ -33,61 +33,70 @@ function [data, fs, stInfo] = au_read(szFilename,vInterval_smp)
 
 %% read header from file
 
-stInfo  = au_info(szFilename);
+% defaul input settings
+vRange_default = [1 Inf];
+if nargin < 2 || isempty(vRange)
+    vRange = vRange_default;
+end
+
+% Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
+stDetails = struct(...
+    'mu',       {1, '',        8,  'u-law',        false}, ...
+    'int8',     {2, 'bit8',    8,  'Uncompressed', true}, ...
+    'int16',    {3, 'bit16'    16, 'Uncompressed', true}, ...
+    'int24',    {4, 'bit24',   24, 'Uncompressed', true}, ...
+    'int32',    {5, 'bit32',   32, 'Uncompressed', true}, ...
+    'float32',  {6, 'float32', 32, 'Uncompressed', true}, ...
+    'float64',  {7, 'float64', 64, 'Uncompressed', true} ...
+    );
+
+[stInfo, iDataOffset, iDataSize]  = au_info(szFilename);
 fs      = stInfo.SampleRate;
 fid     = fopen(szFilename,'r','b');
 if fid == -1
     error('Can not open file.')
 end
 
-szPath          = fopen(fid);
-stFile          = dir(szPath);
-iDataSize_B     = stFile.bytes - stInfo.DataOffset;
-
-caEncoding      = [];
-load('encoding.mat')
-iRowEncoding    = find([caEncoding{:,1}]==stInfo.Encoding);
-if ~caEncoding{iRowEncoding,5}
+if ~stDetails(5).(stInfo.Datatype)
     fclose(fid);
-    error('The encoding-type ''%s'' is not supported.',...
-        caEncoding{iRowEncoding,end})
+    error('The datatype ''%s'' is not supported.',...
+        stInfo.Datatype)
 end
 
-iBitsPerSample  = caEncoding{iRowEncoding,3};
-szFormat        = caEncoding{iRowEncoding,6};
+szFormat        = stDetails(2).(stInfo.Datatype);
+iBitsPerSample  = stDetails(3).(stInfo.Datatype);
 
 
 %% read audio data
 
-iTotal_smp = iDataSize_B*8/iBitsPerSample;
-if nargin == 1
-    vInterval_smp = [1 iTotal_smp];
-elseif vInterval_smp(2) > iTotal_smp/stInfo.NumChannels && vInterval_smp(2) ~= Inf
-    fclose(fid);
-    error('The choosen interval is out of range!')
-elseif vInterval_smp(2) == Inf
-    vInterval_smp(2) = iTotal_smp;
+iTotal_smp = iDataSize*8/iBitsPerSample;
+if vRange(2) == Inf
+    vRange(2) = iTotal_smp/stInfo.NumChannels;
 end
 
-if vInterval_smp(2) < vInterval_smp(1)
+b1 = any(vRange <= 0);
+b2 = vRange(1) > vRange(2);
+b3 = vRange(2) > iTotal_smp/stInfo.NumChannels;
+b4 = length(vRange) ~= 2;
+if b1 || b2 || b3 || b4
     fclose(fid);
-    error('Incorrect range.')
+    error('Selected range not correct.')
 end
 
 % define first byte in the desired interval and jump to it
-iOffset_B = stInfo.DataOffset + (vInterval_smp(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
-fseek(fid,iOffset_B,'bof');
+iOffset = iDataOffset + (vRange(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
+fseek(fid,iOffset,'bof');
 
 % define length of the desired interval and read the samples
-iNum_smp= ( vInterval_smp(2)-vInterval_smp(1)+1 ) *stInfo.NumChannels;
+iNum_smp= ( vRange(2)-vRange(1)+1 ) *stInfo.NumChannels;
 vSig    = fread(fid,iNum_smp,szFormat,0,'b');
 fclose(fid);
-% vSig    = fread(FID,iNum_smp,'float',0,'b');
 
-% normalization
-%#%
-% max_amp = 2^(iBitsPerSample-1);
-% vSig    = vSig/max_amp;
-data       = reshape(vSig,stInfo.NumChannels,[]).';
+% normalization in case of int*
+if strcmp(stInfo.Datatype(1:2),'in')
+    vSig = vSig/2^(iBitsPerSample-1);
+end
 
+data = reshape(vSig,stInfo.NumChannels,[]).';
 
+end

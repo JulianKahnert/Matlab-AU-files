@@ -58,67 +58,67 @@ end
 
 
 %% READ-functions
-% 
-% function testRead(testCase)
-% % READ: read data without interval
-%     for i =1:numel(testCase.TestData.stFiles_all)
-%         szPath  = fullfile(...
-%             testCase.TestData.szPath,...
-%             testCase.TestData.stFiles_all(i).name);
-%         if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
-%             warning('mu-law not yet supported')
-%             return;
-%         end
-%         [y1,fs1] = au_read(szPath);
-%         [y2,fs2] = audioread(szPath);
-% 
-%         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
-%             error('Data corrupt!')
-%         end
-%     end
-% end
-% 
-% function testReadInterval1(testCase)
-% % READ: read data with interval (1)
-%     vSamples= [2 5];
-%     for i =1:numel(testCase.TestData.stFiles_all)
-%         szPath  = fullfile(...
-%             testCase.TestData.szPath,...
-%             testCase.TestData.stFiles_all(i).name);
-%         if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
-%             warning('mu-law not yet supported')
-%             return;
-%         end
-%         [y1,fs1] = au_read(szPath,vSamples);
-%         [y2,fs2] = audioread(szPath,vSamples);
-%         
-%         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
-%             error('Data corrupt!')
-%         end
-%     end
-% end
-% 
-% function testReadInterval2(testCase)
-% % READ: read data with interval (2)
-%     vSamples= [3 Inf];
-%     for i =1:numel(testCase.TestData.stFiles_all)
-%         szPath  = fullfile(...
-%             testCase.TestData.szPath,...
-%             testCase.TestData.stFiles_all(i).name);
-%         if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
-%             warning('mu-law not yet supported')
-%             return;
-%         end
-%         [y1,fs1] = au_read(szPath,vSamples);
-%         [y2,fs2] = audioread(szPath,vSamples);
-%         
-%         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
-%             error('Data corrupt!')
-%         end
-%     end
-% end
-% 
-% 
+
+function testRead(testCase)
+% READ: read data without interval
+    for i =1:numel(testCase.TestData.stFiles_all)
+        szPath  = fullfile(...
+            testCase.TestData.szPath,...
+            testCase.TestData.stFiles_all(i).name);
+        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+            warning('mu-law not yet supported')
+            return;
+        end
+        [y1,fs1] = au_read(szPath);
+        [y2,fs2] = audioread(szPath);
+
+        if fs1 ~= fs2 || any(y1(:) ~= y2(:))
+            error('Data corrupt!')
+        end
+    end
+end
+
+function testReadInterval1(testCase)
+% READ: read data with interval (1)
+    vSamples= [2 5];
+    for i =1:numel(testCase.TestData.stFiles_all)
+        szPath  = fullfile(...
+            testCase.TestData.szPath,...
+            testCase.TestData.stFiles_all(i).name);
+        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+            warning('mu-law not yet supported')
+            return;
+        end
+        [y1,fs1] = au_read(szPath,vSamples);
+        [y2,fs2] = audioread(szPath,vSamples);
+        
+        if fs1 ~= fs2 || any(y1(:) ~= y2(:))
+            error('Data corrupt!')
+        end
+    end
+end
+
+function testReadInterval2(testCase)
+% READ: read data with interval (2)
+    vSamples= [3 Inf];
+    for i =1:numel(testCase.TestData.stFiles_all)
+        szPath  = fullfile(...
+            testCase.TestData.szPath,...
+            testCase.TestData.stFiles_all(i).name);
+        if strcmp(testCase.TestData.stFiles_all(i).name,'test_MU.au')
+            warning('mu-law not yet supported')
+            return;
+        end
+        [y1,fs1] = au_read(szPath,vSamples);
+        [y2,fs2] = audioread(szPath,vSamples);
+        
+        if fs1 ~= fs2 || any(y1(:) ~= y2(:))
+            error('Data corrupt!')
+        end
+    end
+end
+
+
 %% WRITE-function
 
 function testWrite_all(testCase)

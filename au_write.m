@@ -1,7 +1,7 @@
 function au_write(szFilename, data, fs, vRange, szDatatype)
 %AU_WRITE Write audiodata in an au-file.
 %
-% AU_WRITE(szFilename,data,fs,szEncoding,vInterval)
+% AU_WRITE(szFilename, data, fs, vRange, szDatatype)
 %
 %   szFilename:
 %       String which contains the name of the au-file, that should be
@@ -22,7 +22,7 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 %       'int32'
 %       'single'
 %       'double'
-%   vInterval
+%   vRange
 %
 % ATTENTION: second interval automatically set!
 %
@@ -51,6 +51,17 @@ if nargin < 5 || isempty(szDatatype)
     szDatatype = szEncoding_default;
 end
 
+% Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
+stDetails = struct(...
+    'mu',       {1, '',        8,  'u-law',        false}, ...
+    'int8',     {2, 'bit8',    8,  'Uncompressed', true}, ...
+    'int16',    {3, 'bit16'    16, 'Uncompressed', true}, ...
+    'int24',    {4, 'bit24',   24, 'Uncompressed', true}, ...
+    'int32',    {5, 'bit32',   32, 'Uncompressed', true}, ...
+    'float32',  {6, 'float32', 32, 'Uncompressed', true}, ...
+    'float64',  {7, 'float64', 64, 'Uncompressed', true} ...
+    );
+
 b1 = vRange(2)-vRange(1)+1 ~= size(data,1);
 b2 = any(vRange <= 0);
 b3 = vRange(1) > vRange(2);
@@ -62,17 +73,6 @@ end
 if isempty(szExt) || ~strcmp(szExt,'.au')
     szFilename = fullfile(szPath,[szName '.au']);
 end
-
-% Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
-stDetails = struct(...
-    'mu',       {1, '',        8,  'u-law',        false}, ...
-    'int8',     {2, 'bit8',    8,  'Uncompressed', true}, ...
-    'int16',    {3, 'bit16'    16, 'Uncompressed', true}, ...
-    'int24',    {4, 'bit24',   24, 'Uncompressed', true}, ...
-    'int32',    {5, 'bit32',   32, 'Uncompressed', true}, ...
-    'float32',  {6, 'float32', 32, 'Uncompressed', true}, ...
-    'float64',  {7, 'float64', 64, 'Uncompressed', true} ...
-    );
 
 iEncoding       = stDetails(1).(szDatatype);
 szFormat        = stDetails(2).(szDatatype);
