@@ -57,8 +57,7 @@ b3 = vRange(1) > vRange(2);
 if ~any(vRange == Inf) && (b1 || b2 || b3)
     error('Input arguments data and range not consistent.')
 end
-return;
-keyboard
+
 [szPath,szName,szExt]= fileparts(szFilename);
 if isempty(szExt) || ~strcmp(szExt,'.au')
     szFilename = fullfile(szPath,[szName '.au']);
