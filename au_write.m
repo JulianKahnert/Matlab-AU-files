@@ -1,25 +1,24 @@
-function au_write(szFilename, data, fs, vRange, szDatatype)
+function au_write(szFilename, data, fs, iStart, szDatatype)
 %AU_WRITE Write data in an au-file.
 %   AU_WRITE(FILENAME, DATA, FS) writes the audio data in DATA with a given
 %   FS in a au-file, which was specified by the string FILENAME. If a
 %   au-file with FILENAME already exists, it will be overwritten.
 
-%   AU_WRITE(FILENAME, DATA, FS, [START END]) writes the DATA in the
-%   interval START through END for each channel in the file. If you set
-%   START to Inf, AU_WRITE will append DATA on an existing au-file.
-%   Furthermore AU_WRITE will overwrite all existing samples if: 
-%       [START END] = [1 Inf], or
-%       [START END] = []
+%   AU_WRITE(FILENAME, DATA, FS, START) writes the DATA in theinterval
+%   START through START+size(DATA,1) for each channel in the file. If you
+%   set START to Inf, AU_WRITE will append DATA on an existing au-file.
+%   Furthermore AU_WRITE will overwrite all existing samples if START is
+%   not specified or START = [].
 %
-%   AU_WRITE(FILENAME, DATA, FS, [START END], DATATYPE) writes a au-file
+%   AU_WRITE(FILENAME, DATA, FS, START, DATATYPE) writes a au-file
 %   with a specified DATATYPE. Valid strings are int8, int16, int24,
 %   int32, float32 or float64.
 %
 %   Usage:
-%       au_write('testfile.au',rand(10*44100,2)-.5)
-%       au_write('testfile.au',.9*ones(5,2),[3 7])
-%       au_write('testfile.au',rand(10*44100,2)-.5,'int32')
-%       au_write('testfile.au',rand(10*44100,2)-.5,'float64')
+%       au_write('testfile.au', rand(10*44100, 2)-.5)
+%       au_write('testfile.au', .9*ones(5,2), 44100, 3)
+%       au_write('testfile.au', rand(10*44100, 2)-.5, 44100, 3, 'int32')
+%       au_write('testfile.au', rand(10*44100, 2)-.5, 44100, 3, 'float64')
 %
 %   Output Data Ranges
 %   DATA should be a m-by-n matrix, where m is the number of audio samples
@@ -32,14 +31,8 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 %   See also: au_info, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
-% This project is licensed under the terms of the MIT license.
-%--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule
-% Version History:
-% Ver. 0.1.0 initial create                                  29-Apr-2015 JK
-% Ver. 0.2.0 help update                                     06-May-2015 JK
-% Ver. 0.3.0 first mayor release                             19-May-2015 JK
-% Ver. 0.4.0 blockwise writing                               21-May-2015 JK
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
 
 
@@ -47,9 +40,8 @@ function au_write(szFilename, data, fs, vRange, szDatatype)
 
 % defaul input settings
 szEncoding_default  = 'int16';
-vRange_default   = [1 Inf];
-if nargin < 4 || isempty(vRange)
-    vRange = vRange_default;
+if nargin < 4
+    iStart = [];
 end
 if nargin < 5 || isempty(szDatatype)
     szDatatype = szEncoding_default;
@@ -66,11 +58,10 @@ stDetails = struct( ...
     'float64',  {7, 'float64', 64, 'Uncompressed', true}   ...
     );
 
-b1 = vRange(2)-vRange(1)+1 ~= size(data, 1);
-b2 = any(vRange <= 0);
-b3 = vRange(1) > vRange(2);
-if ~any(vRange == Inf) && (b1 || b2 || b3)
-    error('Input arguments data and range not consistent.')
+b1 = any(iStart <= 0);
+b2 = numel(iStart) ~= 1;
+if ~isempty(iStart) && (b1 || b2)
+    error('Check your input arguments!')
 end
 
 [szPath, szName, szExt]= fileparts(szFilename);
@@ -82,7 +73,7 @@ iEncoding       = stDetails(1).(szDatatype);
 szFormat        = stDetails(2).(szDatatype);
 iBitsPerSample  = stDetails(3).(szDatatype);
 
-if ~exist(szFilename,'file') || all(vRange == vRange_default)
+if ~exist(szFilename,'file') || isempty(iStart)
     iNumChannels    = size(data, 2);
     iDataOffset     = 24;
     iDataSize       = 0;
@@ -105,14 +96,14 @@ end
 % open a file
 fid = fopen(szFilename, 'r+', 'b');
 
-if all(vRange == vRange_default)    % case: new file
+if isempty(iStart)                  % case: new file
     iOffset = iDataOffset;
     
-elseif vRange(1) == Inf             % case: append data
+elseif iStart == Inf                % case: append data
     iOffset = iDataOffset + iDataSize;
     
 else                                % case: write interval
-    iOffset = iDataOffset + (vRange(1)-1)*iBitsPerSample/8*iNumChannels;
+    iOffset = iDataOffset + (iStart-1)*iBitsPerSample/8*iNumChannels;
     
 end
 

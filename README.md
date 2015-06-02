@@ -43,17 +43,16 @@ Usage example:
 This function is similar structured as the Matlab equivalent (audiowrite). With the advantage, that you can choose between different types of encodings and **blockwise writing**.
 
 `AU_WRITE(FILENAME, DATA, FS)` writes the audio data in `DATA` with a given FS in a au-file, which was specified by the string `FILENAME`. If a au-file with `FILENAME` already exists, it will be overwritten.
-`AU_WRITE(FILENAME, DATA, FS, [START END])` writes the `DATA` in the interval `START` through `END` for each channel in the file. If you set `START` to `Inf`, `au_write` will append `DATA` on an existing au-file. Furthermore `au_write` will overwrite all existing samples if: 
-`[START END] = [1 Inf]` **or** `[START END] = []`
+`AU_WRITE(FILENAME, DATA, FS, START)` writes the `DATA` in the interval `START` through `START+size(DATA,1)` for each channel in the file. If you set `START` to `Inf`, `au_write` will append `DATA` on an existing au-file. Furthermore AU_WRITE will overwrite all existing samples if START is not specified or START = [].
 
-`au_write(FILENAME, DATA, FS, [START END], DATATYPE)` writes a au-file with a specified `DATATYPE`. Valid strings are *int8*, *int16*, *int24*, *int32*, *float32* or *float64*.
+`au_write(FILENAME, DATA, FS, START, DATATYPE)` writes a au-file with a specified `DATATYPE`. Valid strings are *int8*, *int16*, *int24*, *int32*, *float32* or *float64*.
 
 Usage examples:
 ```matlab
-au_write('testfile.au',rand(10*44100,2)-.5)
-au_write('testfile.au',.9*ones(5,2),[3 7])
-au_write('testfile.au',rand(10*44100,2)-.5,'int32')
-au_write('testfile.au',rand(10*44100,2)-.5,'float64')
+au_write('testfile.au', rand(10*44100, 2)-.5)
+au_write('testfile.au', .9*ones(5,2), 44100, 3)
+au_write('testfile.au', rand(10*44100, 2)-.5, 44100, 3, 'int32')
+au_write('testfile.au', rand(10*44100, 2)-.5, 44100, 3, 'float64')
 ```
 
 

@@ -19,14 +19,8 @@ function [data, fs, stInfo] = au_read(szFilename, vRange)
 %   See also: au_info, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
-% This project is licensed under the terms of the MIT license.
-%--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule
-% Version History:
-% Ver. 0.1.0 initial create                                  05-May-2015 JK
-% Ver. 0.2.0 help update                                     06-May-2015 JK
-% Ver. 0.3.0 first mayor release                             19-May-2015 JK
-% Ver. 0.4.0 new structure + avoid load('*.mat')             21-May-2015 JK
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
 
 

@@ -6,14 +6,8 @@
 %   See also: au_info, au_read, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
-% This project is licensed under the terms of the MIT license.
-%--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule
-% Version History:
-% Ver. 0.1.0 initial create                                  05-May-2015 JK
-% Ver. 0.2.0 help update                                     06-May-2015 JK
-% Ver. 0.3.0 first mayor release                             19-May-2015 JK
-% Ver. 0.4.0 avoid load('*.mat')                             21-May-2015 JK
+% This project is licensed under the terms of the MIT license.
 %--------------------------------------------------------------------------
 
 
@@ -184,7 +178,8 @@ function testWrite_interval_CH1(testCase)
     szFile_new      = fullfile(testCase.TestData.szPath_tmp, ...
         'test_writeInterval_CH3.au');
 
-    vInterval   = [2 4];
+    iStart      = 2;
+    iNumSamples = 3;
     iCH         = 1;
 
     % reference signal
@@ -192,14 +187,13 @@ function testWrite_interval_CH1(testCase)
     au_write(szFile_new, y_ref, 44100)
 
     % generate new signal
-    iNumSamples = vInterval(2)-vInterval(1)+1;
     y_new       = repmat(linspace(0, 1/4, iCH), iNumSamples, 1);
-    y_1         = [y_ref(1:vInterval(1)-1, :); ...
+    y_1         = [y_ref(1:iStart-1, :); ...
         y_new; ...
-        y_ref(vInterval(2)+1:end, :)];
+        y_ref(iStart+iNumSamples:end, :)];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, vInterval)
+    au_write(szFile_new, y_new, 44100, iStart)
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -212,7 +206,8 @@ function testWrite_interval_CH3(testCase)
     szFile_new      = fullfile(testCase.TestData.szPath_tmp, ...
         'test_writeInterval_CH3.au');
 
-    vInterval   = [2 4];
+    iStart      = 2;
+    iNumSamples = 3;
     iCH         = 3;
 
     % reference signal
@@ -220,14 +215,13 @@ function testWrite_interval_CH3(testCase)
     au_write(szFile_new, y_ref, 44100)
 
     % generate new signal
-    iNumSamples = vInterval(2)-vInterval(1)+1;
     y_new       = repmat(linspace(0, 1/4, iCH), iNumSamples, 1);
-    y_1         = [y_ref(1:vInterval(1)-1, :); ...
+    y_1         = [y_ref(1:iStart-1, :); ...
         y_new; ...
-        y_ref(vInterval(2)+1:end, :)];
+        y_ref(iStart+iNumSamples:end, :)];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, vInterval)
+    au_write(szFile_new, y_new, 44100, iStart)
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -240,7 +234,8 @@ function testWrite_append(testCase)
     szFile_new      = fullfile(testCase.TestData.szPath_tmp, ...
         'test_writeInterval_append.au');
 
-    vInterval   = [Inf 4];
+    iStart      = Inf;
+    iNumSamples = 3;
     iCH         = 3;
 
     % reference signal
@@ -248,13 +243,12 @@ function testWrite_append(testCase)
     au_write(szFile_new, y_ref, 44100)
 
     % generate new signal
-    iNumSamples = 3;
     y_new       = repmat(linspace(0, 1/4, iCH), iNumSamples, 1);
     y_1         = [y_ref; ...
         y_new];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, vInterval)
+    au_write(szFile_new, y_new, 44100, iStart)
     y_2 = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
