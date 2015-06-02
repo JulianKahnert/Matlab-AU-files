@@ -18,7 +18,7 @@ The `au_info` function returns information of an au-file as a struct. The first 
 	'Comment'           Always empty for au-files.
 	'Artist'            Always empty for au-files.
 	'BitsPerSample'     Number of bits per sample in the au-file. Valid
-	                    values are 8,16,24,32, or 64.
+	                    values are 8, 16, 24, 32, or 64.
 
 	'Datatype'          Format in which the values should be written. Valid
 	                    strings are int8, int16, int24, int32, float32
@@ -54,7 +54,6 @@ au_write('testfile.au', .9*ones(5,2), 44100, 3)
 au_write('testfile.au', rand(10*44100, 2)-.5, 44100, 3, 'int32')
 au_write('testfile.au', rand(10*44100, 2)-.5, 44100, 3, 'float64')
 ```
-
 
 ## au_test()
 Unit test for all the features, which are implemented. Just run `runtests('au_test.m')` to check it.

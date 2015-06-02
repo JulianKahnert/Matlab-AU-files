@@ -26,7 +26,6 @@ function au_write(szFilename, data, fs, iStart, szDatatype)
 %
 %   Note:
 %   * If datatype is a kind if int, samples >1 or <(-1) will be clipped.
-%   * END automatically set: END = START+size(DATA,1)
 %
 %   See also: au_info, au_write, audioinfo, audioread, audiowrite
 
