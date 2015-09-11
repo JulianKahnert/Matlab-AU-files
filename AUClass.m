@@ -1,30 +1,36 @@
 classdef AUClass < handle
+
+    
+%% properties  
     
     properties (SetAccess = protected, GetAccess = public)
         
         % fields from audioinfo
-        Filename            = '';
-        CompressionMethod   = '';
+        Filename            = [];
+        CompressionMethod   = [];
         NumChannels         = [];
         SampleRate          = [];
         TotalSamples        = [];
         Duration            = [];
-        Title               = '';
-        Comment             = '';
-        Artist              = '';
+        Title               = [];
+        Comment             = [];
+        Artist              = [];
         BitsPerSample       = [];
         
         % au specific
-        Datatype            = '';
+        Datatype            = [];
         
     end
-    
+
     properties ( Access = private )
         
         fid         = [];
-        szFilename  = [];
-        DataSize    = [];
-        DataOffset  = [];
+        szFullPath  = [];
+        iDataOffset = [];
+        iEncoding   = [];
+        szFormat    = [];
+        
+        iCurPos     = 1;
         
         % Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
         stDetails   = struct( ...
@@ -40,73 +46,164 @@ classdef AUClass < handle
     end
     
     
-    
+%% methods
     
     methods ( Access = public)
         
         function self = AUClass(szFilename)
+            self.szFullPath     = szFilename; %#% not the full path in every case!!
+            [~, self.Filename]  = fileparts(szFilename);
             
-            [szPath, szName, szExt]= fileparts(szFilename);
-            if isempty(szExt) || ~strcmp(szExt, '.au')
-                szFilename = fullfile(szPath, [szName '.au']);
+%             % get full path
+%             fid_tmp     = fopen(szFilename, 'r');
+%             self.szFullPath  = fopen(fid_tmp);
+%             fclose(fid_tmp);
+%             
+%             [szPath, szName, szExt]= fileparts(self.szFullPath);
+%             if isempty(szExt) || ~strcmp(szExt, '.au')
+%                 self.szFullPath = fullfile(szPath, [szName '.au']);
+%             end
+%             
+%             disp(self.szFullPath)
+%             keyboard
+
+        end  
+        
+        function open(self, szPermission, iNumChannels, fs, szDatatype)
+            if exist(self.szFullPath, 'file')
+                switch szPermission
+                    case 'read'
+                        self.fid = fopen(self.szFullPath, 'r', 'b');
+                    case 'write'
+                        self.fid = fopen(self.szFullPath, 'r+', 'b');
+                end
+                if self.fid == -1
+                    error('Can not open file.')
+                end
+                
+                % read header
+                magicnumber = fread(self.fid, 4, 'uint8', 0, 'b');
+                if ~all(magicnumber' == uint8('.snd'))
+                    error('Header of the file corrupt. Is it a au-file?')
+                end
+                dataOffset  = fread(self.fid, 1, 'uint32', 0, 'b');
+                dataSize    = fread(self.fid, 1, 'uint32', 0, 'b');      %#ok overwrite later
+                encoding    = fread(self.fid, 1, 'uint32', 0, 'b');
+                fs          = fread(self.fid, 1, 'uint32', 0, 'b');
+                iNumChannels= fread(self.fid, 1, 'uint32', 0, 'b');
+
+                caDatatypes = fieldnames(self.stDetails);
+                temp        = struct2cell(self.stDetails(1));
+                szDatatype  = caDatatypes{ [temp{:}] == encoding};
+                
+                % get file size
+                stFile = dir(self.szFullPath);
+                dataSize = stFile.bytes - dataOffset;
+                iNumSamples = dataSize / (self.stDetails(3).(szDatatype)/8) / self.NumChannels;
+                
+            else
+                if strcmp(szPermission, 'read')
+                    error('Wrong permission for creating a new file.')
+                end
+                
+                if nargin < 3
+                    iNumChannels = 2;
+                    fprintf('\t==> chosen default number of channels: 2\n')
+                end
+                if nargin < 4
+                    fs = 44100;
+                    fprintf('\t==> chosen default sample rate: 44100 Hz\n')
+                end
+                if nargin < 5
+                    szDatatype = 'int16';
+                    fprintf('\t==> chosen default datatype: int16\n')
+                end
+                
+                iNumSamples   = 0;
+                dataOffset = 24;
+                
+                % write header
+                self.fid  = fopen(self.szFullPath, 'w+', 'b');
+                if self.fid == -1
+                    error('Can not open file.')
+                end
+                fwrite(self.fid, int32('.snd'),     'uchar');  % 0 magic number
+                fwrite(self.fid, dataOffset,       'uint32'); % 1 data offset
+                fwrite(self.fid, intmax('uint32'),  'uint32'); % 2 data size
+                fwrite(self.fid, self.stDetails(1).(szDatatype),    'uint32'); % 3 encoding
+                fwrite(self.fid, fs,                'uint32'); % 4 sample rate
+                fwrite(self.fid, iNumChannels,      'uint32'); % 5 channels
             end
             
+            fseek(self.fid, dataOffset, 'bof');
             
-%             if ~exist(szFilename,'file')
-%                 disp('CREATING NEW FILE!') %#%                
-%                 self.fid = fopen(szFilename, 'w', 'b');
-%                 
-%             else
-%                 self.fid = fopen(szFilename, 'r+', 'b');
-%                 self.readHeader();
-%                 
-%             end
-%             
-%             % error check: fopen
-%             if self.fid == -1
-%                 error('Can not read/create file. Is the path correct?')
-%             end
-%             
-%             %#% returns the absolute path, when fopen has 'r+'
-%             self.Filename = fopen(self.fid);
+            % write properties
+            self.NumChannels    = iNumChannels;
+            self.SampleRate     = fs;
+            self.TotalSamples   = iNumSamples;
+            self.Duration       = iNumSamples/fs;
+            self.BitsPerSample  = self.stDetails(3).(szDatatype);
+            self.Datatype       = szDatatype;
+            
+            self.iDataOffset    = dataOffset;
+            self.iEncoding      = self.stDetails(1).(szDatatype);
+            self.szFormat       = self.stDetails(2).(szDatatype);
             
         end
         
-        
-        function open(self)
-        end
         function close(self)
+            fclose(self.fid);
         end
         
-        function seek(self)
+        function seek(self, iSample)
+            if iSample <= 0
+                iSample = 1;
+            end
+            
+            if iSample == Inf
+                fseek(self.fid, 0, 'eof');
+                self.iCurPos = self.TotalSamples;
+            else
+                iOffset = self.iDataOffset + ...
+                    (iSample-1) * self.BitsPerSample/8 * self.NumChannels;
+                fseek(self.fid, iOffset, 'bof');
+                self.iCurPos = iSample;
+            end
+            
         end
         
-        function read(self)
+        function vSignal = read(self, iNumSamples)
+            if iNumSamples > self.TotalSamples-self.iCurPos+1
+                error('Not enough samples to read. Chose less samples!')
+            end
+            
+            % define length of the desired interval and read the samples
+            iNum_smp= iNumSamples * self.NumChannels;
+            vSignal = fread(self.fid, iNum_smp, self.szFormat, 0, 'b');
+
+            % normalization in case of int*
+            if strcmp(self.Datatype(1:2), 'in')
+                vSignal = vSignal/2^(self.BitsPerSample-1);
+            end
+            
+            vSignal = reshape(vSignal, self.NumChannels,[]).';
+
         end
+        
         function write(self)
+            
         end
-        
         
     end
-    
     
     
     methods ( Access = private)
-        
         function delete(self)
-            
-            fclose(self.fid);
-            if self.DataSize == 0
-                delete(self.Filename)
-                keyboard
-            end
+            close(self)
             disp('DESTRUCTOR CALLED!!') %#%
-            
         end
         
     end
-    
-    
     
     
 end
