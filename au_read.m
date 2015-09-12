@@ -27,75 +27,35 @@ function [data, fs, stInfo] = au_read(szFilename, vRange)
 % Ver. 0.2.0 help update                                     06-May-2015 JK
 % Ver. 0.3.0 first mayor release                             19-May-2015 JK
 % Ver. 0.4.0 new structure + avoid load('*.mat')             21-May-2015 JK
+% Ver. 0.5.0 implementation of au class                      12-sep-2015 JK
 %--------------------------------------------------------------------------
 
-
-%% read header from file
-
-% defaul input settings
-vRange_default = [1 Inf];
 if nargin < 2 || isempty(vRange)
-    vRange = vRange_default;
+    vRange = [1 Inf];
 end
 
-% Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
-stDetails = struct( ...
-    'mu',       {1, '',        8,  'u-law',        false}, ...
-    'int8',     {2, 'bit8',    8,  'Uncompressed', true},  ...
-    'int16',    {3, 'bit16'    16, 'Uncompressed', true},  ...
-    'int24',    {4, 'bit24',   24, 'Uncompressed', true},  ...
-    'int32',    {5, 'bit32',   32, 'Uncompressed', true},  ...
-    'float32',  {6, 'float32', 32, 'Uncompressed', true},  ...
-    'float64',  {7, 'float64', 64, 'Uncompressed', true}   ...
-    );
+objAU       = AUClass(szFilename);
+objAU.open('read');
 
-[stInfo, iDataOffset, iDataSize]  = au_info(szFilename);
-fs      = stInfo.SampleRate;
-fid     = fopen(szFilename,'r','b');
-if fid == -1
-    error('Can not open file.')
-end
-
-if ~stDetails(5).(stInfo.Datatype)
-    fclose(fid);
-    error('The datatype ''%s'' is not supported.',...
-        stInfo.Datatype)
-end
-
-szFormat        = stDetails(2).(stInfo.Datatype);
-iBitsPerSample  = stDetails(3).(stInfo.Datatype);
-
-
-%% read audio data
-
-iTotal_smp = iDataSize*8/iBitsPerSample;
 if vRange(2) == Inf
-    vRange(2) = iTotal_smp/stInfo.NumChannels;
+    vRange(2) = objAU.TotalSamples;
 end
 
 b1 = any(vRange <= 0);
 b2 = vRange(1) > vRange(2);
-b3 = vRange(2) > iTotal_smp/stInfo.NumChannels;
+b3 = vRange(2) > objAU.TotalSamples;
 b4 = length(vRange) ~= 2;
 if b1 || b2 || b3 || b4
-    fclose(fid);
     error('Selected range not correct.')
 end
 
-% define first byte in the desired interval and jump to it
-iOffset = iDataOffset + (vRange(1)-1)*iBitsPerSample/8*stInfo.NumChannels;
-fseek(fid, iOffset, 'bof');
+objAU.seek(vRange(1));
 
-% define length of the desired interval and read the samples
-iNum_smp= ( vRange(2)-vRange(1)+1 ) *stInfo.NumChannels;
-vSig    = fread(fid, iNum_smp, szFormat, 0, 'b');
-fclose(fid);
 
-% normalization in case of int*
-if strcmp(stInfo.Datatype(1:2), 'in')
-    vSig = vSig/2^(iBitsPerSample-1);
-end
+%% define output
 
-data = reshape(vSig, stInfo.NumChannels,[]).';
-
-end
+data    = objAU.read( vRange(2)-vRange(1)+1 );
+fs      = objAU.SampleRate;
+warning('off')                  %#ok
+stInfo  = struct(objAU);
+warning('on')                   %#ok

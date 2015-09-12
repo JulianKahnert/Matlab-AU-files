@@ -42,62 +42,14 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 % Ver. 0.2.0 help update                                     06-May-2015 JK
 % Ver. 0.3.0 first mayor release                             19-May-2015 JK
 % Ver. 0.4.0 new structure + avoid load('*.mat')             21-May-2015 JK
+% Ver. 0.5.0 implementation of au class                      12-sep-2015 JK
 %--------------------------------------------------------------------------
 
+objAU       = AUClass(szFilename);
+objAU.open('read');
 
-%% read header from file
-
-fid = fopen(szFilename, 'r');
-if fid == -1
-    error('Can not read file. Is the path correct?')
-end
-magicnumber = fread(fid, 4, 'uint8', 0, 'b');
-if ~all(magicnumber' == uint8('.snd'))
-    fclose(fid);
-    error('Header of the file corrupt. Is it a au-file?')
-end
-iDataOffset = fread(fid, 1, 'uint32', 0, 'b');
-iDataSize   = fread(fid, 1, 'uint32', 0, 'b');      %#ok overwrite later
-iEncoding   = fread(fid, 1, 'uint32', 0, 'b');
-iSampleRate = fread(fid, 1, 'uint32', 0, 'b');
-iChannels   = fread(fid, 1, 'uint32', 0, 'b');
-
-% get absolute file path
-szAbsPath = fopen(fid);
-fclose(fid);
-% get file size
-stFile = dir(szAbsPath);
-iDataSize = stFile.bytes - iDataOffset;
-
-
-%% write info struct
-
-% Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
-stDetails = struct( ...
-    'mu',       {1, '',        8,  'u-law',        false}, ...
-    'int8',     {2, 'bit8',    8,  'Uncompressed', true},  ...
-    'int16',    {3, 'bit16'    16, 'Uncompressed', true},  ...
-    'int24',    {4, 'bit24',   24, 'Uncompressed', true},  ...
-    'int32',    {5, 'bit32',   32, 'Uncompressed', true},  ...
-    'float32',  {6, 'float32', 32, 'Uncompressed', true},  ...
-    'float64',  {7, 'float64', 64, 'Uncompressed', true}   ...
-    );
-
-szDatatype  = fieldnames(stDetails);
-szDatatype  = szDatatype{iEncoding};
-iBitsPerSample = stDetails(3).(szDatatype);
-
-stInfo = struct(...
-    'Filename',             szAbsPath, ...
-    'CompressionMethod',    stDetails(4).(szDatatype), ...
-    'NumChannels',          iChannels, ...
-    'SampleRate',           iSampleRate, ...
-    'TotalSamples',         iDataSize*8 / iBitsPerSample / iChannels, ...
-    'Duration',             iDataSize*8 / iBitsPerSample / iSampleRate / iChannels, ...
-    'Title',                [], ...
-    'Comment',              [], ...
-    'Artist',               [], ...
-    'BitsPerSample',        iBitsPerSample, ...
-    'Datatype',             szDatatype);
-
-end
+warning('off')              %#ok
+stInfo      = struct(objAU);
+warning('on')               %#ok
+iDataOffset = objAU.iDataOffset;
+iDataSize   = objAU.iDataOffset + objAU.TotalSamples * objAU.BitsPerSample/8;
