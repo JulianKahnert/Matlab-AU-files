@@ -20,6 +20,7 @@ classdef AUClass < handle
         % au specific
         Datatype            = [];
         
+        iCurSample          = [];
     end
 
     properties ( Access = private )
@@ -29,8 +30,6 @@ classdef AUClass < handle
         iDataOffset = [];
         iEncoding   = [];
         szFormat    = [];
-        
-        iCurPos     = 1;
         
         % Datatype {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
         stDetails   = struct( ...
@@ -87,11 +86,17 @@ classdef AUClass < handle
                     error('Header of the file corrupt. Is it a au-file?')
                 end
                 dataOffset  = fread(self.fid, 1, 'uint32', 0, 'b');
-                dataSize    = fread(self.fid, 1, 'uint32', 0, 'b');      %#ok overwrite later
+                dataSize    = fread(self.fid, 1, 'uint32', 0, 'b');
                 encoding    = fread(self.fid, 1, 'uint32', 0, 'b');
                 fs          = fread(self.fid, 1, 'uint32', 0, 'b');
                 iNumChannels= fread(self.fid, 1, 'uint32', 0, 'b');
-
+                
+                % change datasize to unkown value
+                if strcmp(szPermission, 'write') && dataSize ~= intmax('uint32')
+                    fseek(self.fid, 8, 'bof');
+                    fwrite(self.fid, intmax('uint32'), 'uint32'); % 2 data size
+                end
+                
                 caDatatypes = fieldnames(self.stDetails);
                 temp        = struct2cell(self.stDetails(1));
                 szDatatype  = caDatatypes{ [temp{:}] == encoding};
@@ -99,7 +104,7 @@ classdef AUClass < handle
                 % get file size
                 stFile = dir(self.szFullPath);
                 dataSize = stFile.bytes - dataOffset;
-                iNumSamples = dataSize / (self.stDetails(3).(szDatatype)/8) / self.NumChannels;
+                iNumSamples = dataSize / (self.stDetails(3).(szDatatype)/8) / iNumChannels;
                 
             else
                 if strcmp(szPermission, 'read')
@@ -149,6 +154,7 @@ classdef AUClass < handle
             self.iEncoding      = self.stDetails(1).(szDatatype);
             self.szFormat       = self.stDetails(2).(szDatatype);
             
+            self.iCurSample     = 1;
         end
         
         function close(self)
@@ -162,18 +168,22 @@ classdef AUClass < handle
             
             if iSample == Inf
                 fseek(self.fid, 0, 'eof');
-                self.iCurPos = self.TotalSamples;
+                self.iCurSample = self.TotalSamples;
             else
                 iOffset = self.iDataOffset + ...
                     (iSample-1) * self.BitsPerSample/8 * self.NumChannels;
                 fseek(self.fid, iOffset, 'bof');
-                self.iCurPos = iSample;
+                self.iCurSample = iSample;
             end
             
         end
         
         function vSignal = read(self, iNumSamples)
-            if iNumSamples > self.TotalSamples-self.iCurPos+1
+            if iNumSamples == Inf
+                seek(self,1)
+                iNumSamples = self.TotalSamples;
+            end
+            if iNumSamples > self.TotalSamples-self.iCurSample+1
                 error('Not enough samples to read. Chose less samples!')
             end
             
@@ -185,13 +195,31 @@ classdef AUClass < handle
             if strcmp(self.Datatype(1:2), 'in')
                 vSignal = vSignal/2^(self.BitsPerSample-1);
             end
+            vSignal         = reshape(vSignal, self.NumChannels,[]).';
+            self.iCurSample = self.iCurSample+iNumSamples;
             
-            vSignal = reshape(vSignal, self.NumChannels,[]).';
-
         end
         
-        function write(self)
+        function write(self, data)
+            [iRow, iCol] = size(data);
+            if iCol ~= self.NumChannels
+                error('Number of channels mismatch')
+            end
             
+            % write data
+            if strcmp(self.Datatype(1:2),'in') % case of int*
+                data = round(data*2^(self.BitsPerSample-1));
+                fwrite(self.fid, data, self.szFormat);
+                
+            else                            % case of float*
+                fwrite(self.fid, data, self.szFormat);
+                
+            end
+            
+            if self.TotalSamples == self.iCurSample-1
+                self.TotalSamples = self.TotalSamples + iRow;
+            end
+            self.iCurSample = self.iCurSample + iRow;
         end
         
     end
