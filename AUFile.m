@@ -21,8 +21,6 @@ classdef AUFile < handle
         DataType        = [];
         
         CurSample       = [];
-        
-        Permission      = [];
     end
 
     properties (SetAccess = protected, GetAccess = public, Hidden)
@@ -34,6 +32,7 @@ classdef AUFile < handle
         fid             = [];
         iEncoding       = [];
         szFormat        = [];
+        Permission    = [];
         
         % DataType {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
         stDetails   = struct( ...
@@ -52,88 +51,56 @@ classdef AUFile < handle
     
     methods ( Access = public)
    
-        function self = AUClass(szFilename, szPermission, varargin)
+        function self = AUFile(szFilename, szPermission, varargin)
             % generating full path
             [szPath, ~, szExt] = fileparts(szFilename);
             if ~strcmp(szExt, '.au')
                 error('Please choose a au-file!')
             end
-            
             if isempty(szPath)
                 self.Filename = fullfile(pwd,szFilename);
             else
                 self.Filename = szFilename;
             end
             
-            % write properties
-            self.Permission = szPermission;
-            
-            open(self, varargin);
-        end  
-        
-        function open(self, varargin)%(self, iNumChannels, fs, szDatatype)
-            % CASE: read
-            if strcmp(self.Permission, 'read')
-                    self.fid = fopen(self.Filename, 'r', 'b');
-                    if self.fid == -1
-                        error('Can not open file.')
-                    end
-                    readHeader(self);
-                    
-            elseif strcmp(self.Permission(1:5), 'write')
-                % CASE: write
-                if exist(self.Filename, 'file') && strcmp(self.Permission, 'write')
-                    self.fid = fopen(self.Filename, 'r+', 'b');
-                    if self.fid == -1
-                        error('Can not open file.')
-                    end
-                    readHeader(self);
-                    
-                    % change datasize to unkown value
-                    fseek(self.fid, 8, 'bof');
-                    fwrite(self.fid, intmax('uint32'), 'uint32'); % 2 data size
-
-                % CASE: writenew
-                else
-                    if isempty(varargin)
-                        self.NumChannels = 2;
-                        fprintf('\t==> chosen default number of channels: %i\n', self.NumChannels)
-                    else
-                        self.NumChannels = varargin{1};
-                    end
-                    
-                    if length(varargin) < 2
-                        self.SampleRate = 44100;
-                        fprintf('\t==> chosen default sample rate: %i Hz\n', self.SampleRate)
-                    else
-                        self.SampleRate = varargin{2};
-                    end
-                    
-                    if length(varargin) < 3
-                        self.DataType = 'int16';
-                        fprintf('\t==> chosen default datatype: %s\n', self.DataType)
-                    else
-                        self.DataType = varargin{3};
-                    end
-                    
-                    self.iDataOffset = 24;
-                    
-                    self.fid = fopen(self.Filename, 'w+', 'b');
-                    if self.fid == -1
-                        error('Can not open file.')
-                    end
-                    writeHeader(self);
-                end
+            % permission parsing
+            if any(strcmp(szPermission, {'r' 'read'}))
+                self.Permission = 'r';
+                open(self, varargin)
+                
+            elseif any(strcmp(szPermission, {'rw' 'readwrite'}))
+                self.Permission = 'r+';
+                open(self, varargin)
+                changeDataSize(self);
+                
+            elseif any(strcmp(szPermission, {'a' 'append'}))
+                self.Permission = 'r+';
+                open(self, varargin)
+                changeDataSize(self);
+                seek(self, 1);
+                
+            elseif any(strcmp(szPermission, {'n' 'new'}))
+                self.Permission = 'w+';
+                open(self, varargin)
+                
+            elseif any(strcmp(szPermission, {'x' 'xnew'}))
+                self.Permission = 'w+';
+                open(self, varargin)
                 
             else
-                error('Permission unkown!')
+                error('Permission not found!')
             end
             
+            
+            % write properties
+            
+            fseek(self.fid, self.iDataOffset, 'bof');
+            self.CurSample         = 1;
+                        
             % get file size
             stFile = dir(self.Filename);
             dataSize = stFile.bytes - self.iDataOffset;
             
-            % write properties
             self.iEncoding          = self.stDetails(1).(self.DataType);
             self.szFormat           = self.stDetails(2).(self.DataType);
             self.BitsPerSample      = self.stDetails(3).(self.DataType);
@@ -142,25 +109,74 @@ classdef AUFile < handle
             self.TotalSamples       = dataSize / (self.BitsPerSample/8) / self.NumChannels;
             self.Duration           = self.TotalSamples/self.SampleRate;
             
-            fseek(self.fid, self.iDataOffset, 'bof');
-            self.CurSample         = 1;
-        end
+        end  
+        
+        function open(self, varargin)%(self, iNumChannels, fs, szDatatype)
+            
+            self.fid = fopen(self.Filename, self.Permission, 'b');
+            if self.fid == -1
+                error('Can not open file.')
+            end
+            
+            if exist(self.Filename, 'file') && ~any(strcmp(self.Permission, {'n' 'new' 'x' 'xnew'}))
+                readHeader(self);
                 
-        function seek(self, iSample)
-            if iSample <= 0
-                iSample = 1;
-            end
-            
-            if iSample == Inf
-                fseek(self.fid, 0, 'eof');
-                self.CurSample = self.TotalSamples;
             else
-                iOffset = self.iDataOffset + ...
-                    (iSample-1) * self.BitsPerSample/8 * self.NumChannels;
-                fseek(self.fid, iOffset, 'bof');
-                self.CurSample = iSample;
+                if strcmp(self.Permission, {'r' 'read'})
+                    error('Wrong permission, because file does not exist!')
+                end
+                
+                if isempty(varargin)
+                    self.NumChannels = 2;
+                    fprintf('\t==> chosen default number of channels: %i\n', self.NumChannels)
+                else
+                    self.NumChannels = varargin{1};
+                end
+                
+                if length(varargin) < 2
+                    self.SampleRate = 44100;
+                    fprintf('\t==> chosen default sample rate: %i Hz\n', self.SampleRate)
+                else
+                    self.SampleRate = varargin{2};
+                end
+                
+                if length(varargin) < 3
+                    self.DataType = 'int16';
+                    fprintf('\t==> chosen default datatype: %s\n', self.DataType)
+                else
+                    self.DataType = varargin{3};
+                end
+                
+                self.iDataOffset = 24;
+                writeHeader(self);
             end
             
+        end
+        
+        function seek(self, iSample, szOrigin)
+            if nargin < 3
+                szOrigin = 'bof';
+            end
+            
+            if iSample < 0
+                iSample = 0;
+            end
+            
+            iPos = (iSample-1) * (self.BitsPerSample/8) * self.NumChannels;
+            if strcmp(szOrigin, 'bof')
+                iPos = iPos + self.iDataOffset;
+            end
+            status = fseek(self.fid, iPos, szOrigin);
+            if status == -1
+                error('Something went wrong!')
+            end
+            tell(self); %#% better with setter/getter functions
+        end
+        
+        function iSample = tell(self)
+            iPos    = ftell(self.fid);
+            iSample = (iPos - self.iDataOffset) / (self.BitsPerSample/8) / self.NumChannels +1;
+            self.CurSample = iSample;
         end
         
         function vSignal = read(self, varargin)
@@ -190,6 +206,9 @@ classdef AUFile < handle
         end
         
         function write(self, data)
+            if any(strcmp(self.Permission, {'r' 'read'}))
+                error('Wrong permission for writing!')
+            end
             [iRow, iCol] = size(data);
             if iCol ~= self.NumChannels
                 error('Number of channels mismatch')
@@ -240,12 +259,16 @@ classdef AUFile < handle
             self.SampleRate     = fread(self.fid, 1, 'uint32', 0, 'b');
             self.NumChannels    = fread(self.fid, 1, 'uint32', 0, 'b');
             
-            caDatatypes = fieldnames(self.stDetails);
-            temp        = struct2cell(self.stDetails(1));
-            szDatatype  = caDatatypes{ [temp{:}] == encoding};
+            caDatatypes     = fieldnames(self.stDetails);
+            temp            = struct2cell(self.stDetails(1));
+            self.DataType   = caDatatypes{ [temp{:}] == encoding};
             
-            self.DataType       = szDatatype;
-            
+        end
+        
+        function changeDataSize(self)
+            % change datasize to unkown value
+            fseek(self.fid, 8, 'bof');
+            fwrite(self.fid, intmax('uint32'), 'uint32'); % 2 data size
         end
         
         function getNumSamples(self)
