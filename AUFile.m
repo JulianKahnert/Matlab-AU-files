@@ -2,9 +2,8 @@ classdef AUFile < handle
     
     
 %% properties
-    
+
     properties (SetAccess = protected, GetAccess = public)
-        
         % fields from audioinfo
         Filename        = [];
         CompressionMethod = [];
@@ -19,20 +18,21 @@ classdef AUFile < handle
         
         % au specific
         DataType        = [];
-        
-        CurSample       = [];
     end
 
     properties (SetAccess = protected, GetAccess = public, Hidden)
         iDataOffset     = [];
     end
     
+    properties
+        CurSample       = [];
+    end
+    
     properties ( Access = private )
-        
         fid             = [];
         iEncoding       = [];
         szFormat        = [];
-        Permission    = [];
+        Permission      = [];
         
         % DataType {iEncoding, fwritePrecission, iBitsPerSample, szCompression, bSupported, szDescription}
         stDetails   = struct( ...
@@ -49,6 +49,27 @@ classdef AUFile < handle
     
 %% methods
     
+    methods
+        function set.CurSample(self, iNewSample)
+            seek(self,iNewSample)
+            self.CurSample = iNewSample;
+        end
+        
+        function CurSample = get.CurSample(self)
+            CurSample = tell(self);
+        end
+        
+        function TotalSamples = get.TotalSamples(self)
+            stFile      = dir(self.Filename);
+            dataSize    = stFile.bytes - self.iDataOffset;
+            TotalSamples= dataSize / (self.BitsPerSample/8) / self.NumChannels;
+            
+            self.Duration = TotalSamples/self.SampleRate;
+        end
+        
+    end
+
+
     methods ( Access = public)
    
         function self = AUFile(szFilename, szPermission, varargin)
@@ -77,13 +98,16 @@ classdef AUFile < handle
                 self.Permission = 'r+';
                 open(self, varargin)
                 changeDataSize(self);
-                seek(self, 1);
+                seek(self, 0, 'eof');
                 
             elseif any(strcmp(szPermission, {'n' 'new'}))
                 self.Permission = 'w+';
                 open(self, varargin)
                 
             elseif any(strcmp(szPermission, {'x' 'xnew'}))
+                if exist(self.Filename, 'file')
+                    error('A file with this name already exists!')
+                end
                 self.Permission = 'w+';
                 open(self, varargin)
                 
@@ -91,34 +115,20 @@ classdef AUFile < handle
                 error('Permission not found!')
             end
             
-            
-            % write properties
-            
             fseek(self.fid, self.iDataOffset, 'bof');
-            self.CurSample         = 1;
-                        
-            % get file size
-            stFile = dir(self.Filename);
-            dataSize = stFile.bytes - self.iDataOffset;
-            
-            self.iEncoding          = self.stDetails(1).(self.DataType);
-            self.szFormat           = self.stDetails(2).(self.DataType);
-            self.BitsPerSample      = self.stDetails(3).(self.DataType);
-            self.CompressionMethod  = self.stDetails(4).(self.DataType);
-            
-            self.TotalSamples       = dataSize / (self.BitsPerSample/8) / self.NumChannels;
-            self.Duration           = self.TotalSamples/self.SampleRate;
-            
         end  
         
         function open(self, varargin)%(self, iNumChannels, fs, szDatatype)
+            % check if file exists (before open)
+            bExist = exist(self.Filename, 'file');
             
+            % open file
             self.fid = fopen(self.Filename, self.Permission, 'b');
             if self.fid == -1
                 error('Can not open file.')
             end
             
-            if exist(self.Filename, 'file') && ~any(strcmp(self.Permission, {'n' 'new' 'x' 'xnew'}))
+            if bExist && ~any(strcmp(self.Permission, 'w+'))
                 readHeader(self);
                 
             else
@@ -126,7 +136,7 @@ classdef AUFile < handle
                     error('Wrong permission, because file does not exist!')
                 end
                 
-                if isempty(varargin)
+                if isempty(varargin) || isempty(varargin{1})
                     self.NumChannels = 2;
                     fprintf('\t==> chosen default number of channels: %i\n', self.NumChannels)
                 else
@@ -151,6 +161,12 @@ classdef AUFile < handle
                 writeHeader(self);
             end
             
+            % write properties
+            self.iEncoding          = self.stDetails(1).(self.DataType);
+            self.szFormat           = self.stDetails(2).(self.DataType);
+            self.BitsPerSample      = self.stDetails(3).(self.DataType);
+            self.CompressionMethod  = self.stDetails(4).(self.DataType);
+            
         end
         
         function seek(self, iSample, szOrigin)
@@ -170,13 +186,11 @@ classdef AUFile < handle
             if status == -1
                 error('Something went wrong!')
             end
-            tell(self); %#% better with setter/getter functions
         end
         
         function iSample = tell(self)
             iPos    = ftell(self.fid);
             iSample = (iPos - self.iDataOffset) / (self.BitsPerSample/8) / self.NumChannels +1;
-            self.CurSample = iSample;
         end
         
         function vSignal = read(self, varargin)
@@ -185,12 +199,10 @@ classdef AUFile < handle
             end
             
             if isempty(varargin)
-                seek(self,1)
-                iNumSamples = self.TotalSamples;
+                iNumSamples = self.TotalSamples - self.CurSample +1;
             else 
                 iNumSamples = varargin{1};
             end
-            
             
             % define length of the desired interval and read the samples
             iNum_smp= iNumSamples * self.NumChannels;
@@ -201,34 +213,32 @@ classdef AUFile < handle
                 vSignal = vSignal/2^(self.BitsPerSample-1);
             end
             vSignal         = reshape(vSignal, self.NumChannels,[]).';
-            self.CurSample = self.CurSample+iNumSamples;
             
+        end
+        
+        function vSignal = readall(self)
+            seek(self, 1, 'bof');
+            vSignal = read(self);
         end
         
         function write(self, data)
             if any(strcmp(self.Permission, {'r' 'read'}))
                 error('Wrong permission for writing!')
             end
-            [iRow, iCol] = size(data);
+            [~, iCol] = size(data);
             if iCol ~= self.NumChannels
                 error('Number of channels mismatch')
             end
             
             % write data
-            if strcmp(self.DataType(1:2),'in') % case of int*
+            if strcmp(self.DataType(1:2),'in')  % case of int*
                 data = round(data*2^(self.BitsPerSample-1));
                 fwrite(self.fid, data, self.szFormat);
                 
-            else                            % case of float*
+            else                                % case of float*
                 fwrite(self.fid, data, self.szFormat);
                 
             end
-            
-            if self.TotalSamples == self.CurSample-1
-                self.TotalSamples   = self.TotalSamples + iRow;
-                self.Duration       = self.TotalSamples/self.SampleRate;
-            end
-            self.CurSample = self.CurSample + iRow;
         end
         
     end
@@ -269,13 +279,14 @@ classdef AUFile < handle
             % change datasize to unkown value
             fseek(self.fid, 8, 'bof');
             fwrite(self.fid, intmax('uint32'), 'uint32'); % 2 data size
+            seek(self,1)
         end
         
-        function getNumSamples(self)
-            stFile  = dir(self.Filename);
-            dataSize= stFile.bytes - dataOffset;
-            iNumSamples = dataSize / (self.stDetails(3).(szDatatype)/8) / iNumChannels;
-        end
+%         function getNumSamples(self)
+%             stFile  = dir(self.Filename);
+%             dataSize= stFile.bytes - dataOffset;
+%             iNumSamples = dataSize / (self.stDetails(3).(szDatatype)/8) / iNumChannels;
+%         end
     end
     
     
