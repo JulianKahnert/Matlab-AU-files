@@ -18,6 +18,8 @@ classdef AUFile < handle
         
         % au specific
         DataType        = [];
+        
+        eof             = [];
     end
 
     properties (SetAccess = protected, GetAccess = public, Hidden)
@@ -67,6 +69,10 @@ classdef AUFile < handle
             self.Duration = TotalSamples/self.SampleRate;
         end
         
+        function eof = get.eof(self)
+            tmp = dir(self.Filename);
+            eof = (ftell(self.fid) == tmp.bytes);
+        end
     end
 
 
@@ -174,10 +180,6 @@ classdef AUFile < handle
                 szOrigin = 'bof';
             end
             
-            if iSample < 0
-                iSample = 0;
-            end
-            
             iPos = (iSample-1) * (self.BitsPerSample/8) * self.NumChannels;
             if strcmp(szOrigin, 'bof')
                 iPos = iPos + self.iDataOffset;
@@ -194,8 +196,11 @@ classdef AUFile < handle
         end
         
         function vSignal = read(self, varargin)
-            if ~isempty(varargin) && varargin{1} > self.TotalSamples-self.CurSample+1
+            if length(varargin) == 1 && varargin{1} > self.TotalSamples-self.CurSample+1
                 error('Not enough samples to read. Choose less samples!')
+            end
+            if self.CurSample < 1
+                error('Seek to a valid position!')
             end
             
             if isempty(varargin)
@@ -212,7 +217,13 @@ classdef AUFile < handle
             if strcmp(self.DataType(1:2), 'in')
                 vSignal = vSignal/2^(self.BitsPerSample-1);
             end
-            vSignal         = reshape(vSignal, self.NumChannels,[]).';
+            vSignal = reshape(vSignal, self.NumChannels,[]).';
+            
+            if length(varargin) == 2
+                iAdd    = varargin{2};
+                vSize   = size(vSignal);
+                vSignal = [vSignal; iAdd * ones(iNumSamples-vSize(1) , self.NumChannels)];
+            end
             
         end
         
@@ -224,6 +235,9 @@ classdef AUFile < handle
         function write(self, data)
             if any(strcmp(self.Permission, {'r' 'read'}))
                 error('Wrong permission for writing!')
+            end
+            if self.CurSample < 1
+                error('Seek to a valid position!')
             end
             [~, iCol] = size(data);
             if iCol ~= self.NumChannels
@@ -282,11 +296,6 @@ classdef AUFile < handle
             seek(self,1)
         end
         
-%         function getNumSamples(self)
-%             stFile  = dir(self.Filename);
-%             dataSize= stFile.bytes - dataOffset;
-%             iNumSamples = dataSize / (self.stDetails(3).(szDatatype)/8) / iNumChannels;
-%         end
     end
     
     
