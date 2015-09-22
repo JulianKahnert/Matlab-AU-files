@@ -219,10 +219,11 @@ classdef AUFile < handle
             end
             vSignal = reshape(vSignal, self.NumChannels,[]).';
             
-            if length(varargin) == 2
+            vSize   = size(vSignal);
+            if length(varargin) == 2 && vSize(1) < iNumSamples
                 iAdd    = varargin{2};
-                vSize   = size(vSignal);
-                vSignal = [vSignal; iAdd * ones(iNumSamples-vSize(1) , self.NumChannels)];
+                vSignal = [vSignal; iAdd * ones(iNumSamples-vSize(1), self.NumChannels)];
+                warning('Attention: values added!')
             end
             
         end
