@@ -91,7 +91,11 @@ classdef AUFile < handle
             end
             
             % permission parsing
-            if any(strcmp(szPermission, {'r' 'read'}))
+            if any(strcmp(szPermission, {'n' 'new'})) || ~exist(self.Filename, 'file')
+                self.Permission = 'w+';
+                open(self, varargin)
+                
+            elseif any(strcmp(szPermission, {'r' 'read'}))
                 self.Permission = 'r';
                 open(self, varargin)
                 
@@ -104,11 +108,7 @@ classdef AUFile < handle
                 self.Permission = 'r+';
                 open(self, varargin)
                 changeDataSize(self);
-                seek(self, 0, 'eof');
-                
-            elseif any(strcmp(szPermission, {'n' 'new'}))
-                self.Permission = 'w+';
-                open(self, varargin)
+                seek(self, 1, 'eof');
                 
             elseif any(strcmp(szPermission, {'x' 'xnew'}))
                 if exist(self.Filename, 'file')
@@ -121,10 +121,12 @@ classdef AUFile < handle
                 error('Permission not found!')
             end
             
-            fseek(self.fid, self.iDataOffset, 'bof');
+            if ~any(strcmp(szPermission, {'a' 'append'}))
+                seek(self, 1, 'bof')
+            end
         end  
         
-        function open(self, varargin)%(self, iNumChannels, fs, szDatatype)
+        function open(self, caArgin)%(self, iNumChannels, fs, szDatatype)
             % check if file exists (before open)
             bExist = exist(self.Filename, 'file');
             
@@ -134,7 +136,7 @@ classdef AUFile < handle
                 error('Can not open file.')
             end
             
-            if bExist && ~any(strcmp(self.Permission, 'w+'))
+            if bExist && ~strcmp(self.Permission, 'w+')
                 readHeader(self);
                 
             else
@@ -142,25 +144,25 @@ classdef AUFile < handle
                     error('Wrong permission, because file does not exist!')
                 end
                 
-                if isempty(varargin) || isempty(varargin{1})
+                if isempty(caArgin) || isempty(caArgin{1})
                     self.NumChannels = 2;
                     fprintf('\t==> chosen default number of channels: %i\n', self.NumChannels)
                 else
-                    self.NumChannels = varargin{1};
+                    self.NumChannels = caArgin{1};
                 end
                 
-                if length(varargin) < 2
+                if length(caArgin) < 2
                     self.SampleRate = 44100;
                     fprintf('\t==> chosen default sample rate: %i Hz\n', self.SampleRate)
                 else
-                    self.SampleRate = varargin{2};
+                    self.SampleRate = caArgin{2};
                 end
                 
-                if length(varargin) < 3
+                if length(caArgin) < 3
                     self.DataType = 'int16';
                     fprintf('\t==> chosen default datatype: %s\n', self.DataType)
                 else
-                    self.DataType = varargin{3};
+                    self.DataType = caArgin{3};
                 end
                 
                 self.iDataOffset = 24;
@@ -245,6 +247,10 @@ classdef AUFile < handle
                 error('Number of channels mismatch')
             end
             
+            % for a higher speed
+            if self.NumChannels > 1,
+                data = reshape(data', self.NumChannels * size(data, 1), 1);
+            end
             % write data
             if strcmp(self.DataType(1:2),'in')  % case of int*
                 data = round(data*2^(self.BitsPerSample-1));

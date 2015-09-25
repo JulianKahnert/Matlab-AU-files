@@ -19,7 +19,7 @@
 
 %% Main function to generate tests
 
-function tests = tester_fun
+function tests = au_test_class
 tests = functiontests(localfunctions);
 end
 
@@ -32,8 +32,7 @@ function testInfo(testCase)
             testCase.TestData.szPath, ...
             testCase.TestData.stFiles_all(i).name);
         stInfo1 = au_info(szPath);
-        stInfo2 = audioinfo(szPath);
-
+        stInfo2 = AUFile(szPath, 'read');
         if ~strcmp(stInfo1.Filename, stInfo2.Filename)
             error('Filename not consistent!')
         end
@@ -71,7 +70,11 @@ function testRead(testCase)
             warning('mu-law not yet supported')
             return;
         end
-        [y1, fs1] = au_read(szPath);
+%         [y1, fs1] = au_read(szPath);
+        objAU   = AUFile(szPath, 'read');
+        fs1     = objAU.SampleRate;
+        y1      = objAU.readall();
+        
         [y2, fs2] = audioread(szPath);
 
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
@@ -91,7 +94,12 @@ function testReadInterval1(testCase)
             warning('mu-law not yet supported')
             return;
         end
-        [y1, fs1] = au_read(szPath, vSamples);
+%         [y1, fs1] = au_read(szPath, vSamples);
+        objAU   = AUFile(szPath, 'read');
+        fs1     = objAU.SampleRate;
+        objAU.seek(vSamples(1));
+        y1      = objAU.read(diff(vSamples)+1);
+        
         [y2, fs2] = audioread(szPath, vSamples);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
@@ -111,7 +119,12 @@ function testReadInterval2(testCase)
             warning('mu-law not yet supported')
             return;
         end
-        [y1, fs1] = au_read(szPath, vSamples);
+%         [y1, fs1] = au_read(szPath, vSamples);
+        objAU   = AUFile(szPath, 'read');
+        fs1     = objAU.SampleRate;
+        objAU.seek(vSamples(1));
+        y1      = objAU.read();
+        
         [y2, fs2] = audioread(szPath, vSamples);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
@@ -135,7 +148,10 @@ function testWrite_all(testCase)
         [y1, fs1] = audioread(szPath);
         
         % self-generated file
-        au_write(szFile_new, y1, fs1)
+%         au_write(szFile_new, y1, fs1)
+        objAU   = AUFile(szFile_new, 'new', size(y1,2), fs1, 'int16');
+        objAU.write(y1);
+        
         if ~exist(szFile_new, 'file')
             keyboard
             error('Au-file not written!')
@@ -143,6 +159,7 @@ function testWrite_all(testCase)
         [y2, fs2] = audioread(szFile_new);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
+            keyboard
             plot(y1 - y2)
             title('Difference between signals: ref - new')
             error('ATTENTION: Saved vectors are not identical!!')
@@ -164,7 +181,10 @@ function testWrite_bitDepths(testCase)
         y1 = 1./2.^(1:iBitsPerSample-1).';
         
         % self-generated file
-        au_write(szFile_new, y1, 44100, [], caDatatypes{i})
+%         au_write(szFile_new, y1, 44100, [], caDatatypes{i})
+        objAU   = AUFile(szFile_new, 'new', size(y1,2), 44100, caDatatypes{i});
+        objAU.write(y1);
+        
         if ~exist(szFile_new, 'file')
             error('Au-file not written!')
         end
@@ -189,7 +209,9 @@ function testWrite_interval_CH1(testCase)
 
     % reference signal
     y_ref       = ones(10, iCH)/2;
-    au_write(szFile_new, y_ref, 44100)
+%     au_write(szFile_new, y_ref, 44100)
+    objAU = AUFile(szFile_new, 'new', size(y_ref,2), 44100, 'int16');
+    objAU.write(y_ref);
 
     % generate new signal
     iNumSamples = vInterval(2)-vInterval(1)+1;
@@ -199,7 +221,11 @@ function testWrite_interval_CH1(testCase)
         y_ref(vInterval(2)+1:end, :)];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, vInterval)
+%     au_write(szFile_new, y_new, 44100, vInterval)
+    objAU = AUFile(szFile_new, 'readwrite', size(y_new,2), 44100, 'int16');
+    objAU.seek(vInterval(1));
+    objAU.write(y_new);
+    
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -217,7 +243,9 @@ function testWrite_interval_CH3(testCase)
 
     % reference signal
     y_ref       = ones(10, iCH)/2;
-    au_write(szFile_new, y_ref, 44100)
+%     au_write(szFile_new, y_ref, 44100)
+    objAU = AUFile(szFile_new, 'new', size(y_ref,2), 44100, 'int16');
+    objAU.write(y_ref);
 
     % generate new signal
     iNumSamples = vInterval(2)-vInterval(1)+1;
@@ -227,7 +255,11 @@ function testWrite_interval_CH3(testCase)
         y_ref(vInterval(2)+1:end, :)];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, vInterval)
+%     au_write(szFile_new, y_new, 44100, vInterval)
+    objAU = AUFile(szFile_new, 'readwrite', size(y_new,2), 44100, 'int16');
+    objAU.seek(vInterval(1));
+    objAU.write(y_new);
+    
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -245,7 +277,9 @@ function testWrite_append(testCase)
 
     % reference signal
     y_ref       = ones(10, iCH)/2;
-    au_write(szFile_new, y_ref, 44100)
+%     au_write(szFile_new, y_ref, 44100)
+    objAU = AUFile(szFile_new, 'new', size(y_ref,2), 44100, 'int16');
+    objAU.write(y_ref);
 
     % generate new signal
     iNumSamples = 3;
@@ -254,7 +288,9 @@ function testWrite_append(testCase)
         y_new];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, vInterval)
+%     au_write(szFile_new, y_new, 44100, vInterval)
+    objAU = AUFile(szFile_new, 'append', size(y_new,2), 44100, 'int16');
+    objAU.write(y_new);
     y_2 = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -267,9 +303,8 @@ end
 
 function setupOnce(testCase)  % do not change function name
     clc
-    szPath          = fileparts(which('au_test.m'));
+    szPath = fileparts(which(mfilename('fullpath')));
     cd(szPath)
-    szPath = fileparts(which('au_test.m'));
     szPath = fullfile(szPath, 'audio_files');
     cd(szPath)
     szPath_tmp = fullfile(szPath, 'temp');

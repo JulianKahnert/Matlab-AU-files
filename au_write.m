@@ -56,6 +56,10 @@ end
 vSize   = size(data);
 objAU   = AUFile(szFilename, szPermission, vSize(2), fs, szDataType);
 
+if vRange(1) == Inf
+    vRange(1) = objAU.TotalSamples +1;
+end
+
 
 if all(vRange == [1 Inf])
     objAU.write(data);
