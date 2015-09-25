@@ -45,8 +45,7 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 % Ver. 0.5.0 implementation of au class                      12-sep-2015 JK
 %--------------------------------------------------------------------------
 
-objAU       = AUClass(szFilename);
-objAU.open('read');
+objAU       = AUFile(szFilename, 'read');
 
 warning('off')              %#ok
 stInfo      = struct(objAU);

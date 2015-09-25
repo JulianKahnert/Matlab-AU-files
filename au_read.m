@@ -34,8 +34,7 @@ if nargin < 2 || isempty(vRange)
     vRange = [1 Inf];
 end
 
-objAU       = AUClass(szFilename);
-objAU.open('read');
+objAU       = AUFile(szFilename, 'read');
 
 if vRange(2) == Inf
     vRange(2) = objAU.TotalSamples;
