@@ -13,7 +13,7 @@
 
 %% Main function to generate tests
 
-function tests = tester_fun
+function tests = au_test_func
 tests = functiontests(localfunctions);
 end
 
@@ -137,6 +137,7 @@ function testWrite_all(testCase)
         [y2, fs2] = audioread(szFile_new);
         
         if fs1 ~= fs2 || any(y1(:) ~= y2(:))
+            keyboard
             plot(y1 - y2)
             title('Difference between signals: ref - new')
             error('ATTENTION: Saved vectors are not identical!!')
@@ -261,9 +262,8 @@ end
 
 function setupOnce(testCase)  % do not change function name
     clc
-    szPath          = fileparts(which('au_test.m'));
+    szPath = fileparts(which(mfilename('fullpath')));
     cd(szPath)
-    szPath = fileparts(which('au_test.m'));
     szPath = fullfile(szPath, 'audio_files');
     cd(szPath)
     szPath_tmp = fullfile(szPath, 'temp');
