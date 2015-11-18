@@ -159,7 +159,7 @@ function testWrite_bitDepths(testCase)
         y1 = 1./2.^(1:iBitsPerSample-1).';
         
         % self-generated file
-        au_write(szFile_new, y1, 44100, [], caDatatypes{i})
+        au_write(szFile_new, y1, 44100, caDatatypes{i})
         if ~exist(szFile_new, 'file')
             error('Au-file not written!')
         end
@@ -194,7 +194,7 @@ function testWrite_interval_CH1(testCase)
         y_ref(iStart+iNumSamples:end, :)];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, iStart)
+    au_write(szFile_new, y_new, 44100, 'int16', iStart)
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -222,7 +222,7 @@ function testWrite_interval_CH3(testCase)
         y_ref(iStart+iNumSamples:end, :)];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, iStart)
+    au_write(szFile_new, y_new, 44100, 'int16', iStart)
     y_2         = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
@@ -249,7 +249,7 @@ function testWrite_append(testCase)
         y_new];
 
     % write interval
-    au_write(szFile_new, y_new, 44100, iStart)
+    au_write(szFile_new, y_new, 44100, 'int16', iStart)
     y_2 = audioread(szFile_new);
 
     if any(any(y_1 ~= y_2))
