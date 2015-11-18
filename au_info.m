@@ -31,7 +31,7 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 %   equal to the size of the header. DATASIZE is specified as the size of
 %   the au data.
 %
-%   See also: au_read, au_write, audioinfo, audioread, audiowrite
+%   See also: AUFile, au_read, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule
