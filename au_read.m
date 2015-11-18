@@ -16,7 +16,7 @@ function [data, fs, stInfo] = au_read(szFilename, vRange)
 %   DATA is returned as an m-by-n matrix, where m is the number of audio 
 %   samples read and n is the number of audio channels in the file.
 %
-%   See also: au_info, au_write, audioinfo, audioread, audiowrite
+%   See also: AUFile, au_info, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule

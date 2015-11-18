@@ -26,7 +26,7 @@ function au_write(szFilename, data, fs, szDataType, iStart)
 %   Note:
 %   * If datatype is a kind if int, samples >1 or <(-1) will be clipped.
 %
-%   See also: au_info, au_write, audioinfo, audioread, audiowrite
+%   See also: AUFile, au_info, au_write, audioinfo, audioread, audiowrite
 
 %--------------------------------------------------------------------------
 % Author: Julian Kahnert (c) TGM @ Jade Hochschule
@@ -35,10 +35,13 @@ function au_write(szFilename, data, fs, szDataType, iStart)
 
 if nargin < 3
     error('Not enough input arguments.');
-elseif nargin < 4
-    szPermission    = 'new';
-    szDataType      = 'int16';
+end
+if nargin < 4
+    szDataType  = 'int16';
+end
+if nargin < 5
     iStart          = 1;
+    szPermission    = 'new';
 else
     szPermission    = 'readwrite';
 end
