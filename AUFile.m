@@ -103,6 +103,10 @@ classdef AUFile < handle
             %   objAU = AUFile('testfile.au', 'read')
             %   objAU = AUFile('testfile.au', 'n', 5, 4800, 'float32')
             
+            if nargin < 2
+                error('Not enough input arguments.')
+            end
+            
             % generating full path
             [szPath, ~, szExt] = fileparts(szFilename);
             if ~strcmp(szExt, '.au')
