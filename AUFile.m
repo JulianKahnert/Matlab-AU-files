@@ -80,7 +80,7 @@ classdef AUFile < handle
             % FILENAME is a string that specifies the name of the audio file, it can be absolute,
             % relative, or partial. 
             %
-            % PERMISSION allows multiple values:
+            % PERMISSION allows different input arguments:
             %   * 'n' or 'new'      : write a new file, discard existing content
             %   * 'r' or 'read'     : read permission
             %   * 'rw'or 'readwrite': read and write permission
@@ -91,7 +91,13 @@ classdef AUFile < handle
             %
             % FS samplerate (default: 44100)
             %
-            % DATATYPE datatype of data (default: 'int16')
+            % DATATYPE datatype of data (default: 'int16'), also possible:
+            %   * 'int8'
+            %   * 'int16'
+            %   * 'int24'
+            %   * 'int32'
+            %   * 'float32'
+            %   * 'float64'
             %
             % Usage:
             %   objAU = AUFile('testfile.au', 'read')

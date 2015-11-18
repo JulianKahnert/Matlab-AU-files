@@ -12,7 +12,7 @@ Since the [AU file format](https://en.wikipedia.org/wiki/Au_file_format/) has no
 Whereas the advantage of this toolkit is, that it is built on standard Matlab-code, so that there is no fear of a *will be removed in a future release*-warning! Furthermore, it will support more au-encodings (like `int24`, `int32`, `float32` and `float64`).
 
 
-## AUFile-class (workflow-examples)
+## Workflow Examples (class)
 Write data in a new au-file.
 ```matlab
 iCH  = 5;
