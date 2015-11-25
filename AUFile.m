@@ -225,7 +225,7 @@ classdef AUFile < handle
             
             vSize   = size(vSignal);
             if length(varargin) == 2 && vSize(1) < iNumSamples
-                iAdd    = varargin{2};
+                iAdd    = varargin{2}(1);
                 vSignal = [vSignal; iAdd * ones(iNumSamples-vSize(1), self.NumChannels)];
                 warning('Attention: values added!')
             end
