@@ -99,13 +99,32 @@ classdef AUFile < handle
             %   * 'float32'
             %   * 'float64'
             %
+            % IMPORTANT: If the au-file already exists, NUMCHANNELS, FS and
+            % DATATYPE will be overwritte with the properties from the
+            % file.
+            %
             % Usage:
             %   objAU = AUFile('testfile.au', 'read')
             %   objAU = AUFile('testfile.au', 'n', 5, 4800, 'float32')
             
-            if nargin < 2
-                error('Not enough input arguments.')
-            end
+            % input parsing
+            objParser= inputParser;
+            valiFcn0 = @(x) ischar(x) && strcmp(x(end-2:end),'.au');
+            valiFcn1 = @(x) any(strcmp(x,{'n' 'new' 'r' 'read' 'rw' 'readwrite' 'a' 'append' 'x' 'xnew'}));
+            valiFcn2 = @(x) validateattributes(x,{'numeric'},{'scalar','integer','positive'});
+            valiFcn3 = @(x) any(strcmp(x,fieldnames(self.stDetails)));
+            
+            addRequired(objParser, 'szFilename',            valiFcn0)
+            addRequired(objParser, 'szPermission',          valiFcn1)
+            addOptional(objParser, 'iNumChannels',  2,      valiFcn2)
+            addOptional(objParser, 'fs',            44100,  valiFcn2)
+            addOptional(objParser, 'szDatatype',    'int16',valiFcn3)
+            
+            parse(objParser, szFilename, szPermission, varargin{:})
+            
+            self.NumChannels= objParser.Results.iNumChannels;
+            self.SampleRate = objParser.Results.fs;
+            self.DataType   = objParser.Results.szDatatype;
             
             % generating full path
             [szPath, ~, szExt] = fileparts(szFilename);
@@ -119,34 +138,40 @@ classdef AUFile < handle
             end
             
             % permission parsing
-            if any(strcmp(szPermission, {'n' 'new'})) || ~exist(self.Filename, 'file')
-                self.Permission = 'w+';
-                open(self, varargin)
-                
-            elseif any(strcmp(szPermission, {'r' 'read'}))
-                self.Permission = 'r';
-                open(self, varargin)
-                
-            elseif any(strcmp(szPermission, {'rw' 'readwrite'}))
-                self.Permission = 'r+';
-                open(self, varargin)
-                changeDataSize(self);
-                
-            elseif any(strcmp(szPermission, {'a' 'append'}))
-                self.Permission = 'r+';
-                open(self, varargin)
-                changeDataSize(self);
-                seek(self, 1, 'eof');
-                
-            elseif any(strcmp(szPermission, {'x' 'xnew'}))
-                if exist(self.Filename, 'file')
-                    error('A file with this name already exists!')
-                end
-                self.Permission = 'w+';
-                open(self, varargin)
-                
-            else
-                error('Permission not found!')
+            if ~exist(self.Filename, 'file')
+                szPermission = 'new';
+            end
+            
+            switch szPermission
+                case {'n' 'new'}
+                    self.Permission = 'w+';
+                    open(self)
+                    seek(self, 1, 'bof')
+                    
+                case {'r' 'read'}
+                    self.Permission = 'r';
+                    open(self)
+                    seek(self, 1, 'bof')
+                    
+                case {'rw' 'readwrite'}
+                    self.Permission = 'r+';
+                    open(self)
+                    changeDataSize(self);
+                    seek(self, 1, 'bof')
+                    
+                case {'a' 'append'}
+                    self.Permission = 'r+';
+                    open(self)
+                    changeDataSize(self);
+                    seek(self, 1, 'eof');
+                    
+                case {'x' 'xnew'}
+                    if exist(self.Filename, 'file')
+                        error('A file with this name already exists!')
+                    end
+                    self.Permission = 'w+';
+                    open(self)
+                    seek(self, 1, 'bof')
             end
             
             if ~any(strcmp(szPermission, {'a' 'append'}))
@@ -279,7 +304,7 @@ classdef AUFile < handle
     
     methods (Hidden = true)
                
-        function open(self, caArgin)%(self, iNumChannels, fs, szDatatype)
+        function open(self)
             % check if file exists (before open)
             bExist = exist(self.Filename, 'file');
             
@@ -291,33 +316,10 @@ classdef AUFile < handle
             
             if bExist && ~strcmp(self.Permission, 'w+')
                 readHeader(self);
-                
             else
                 if strcmp(self.Permission, 'r')
                     error('Wrong permission, because file does not exist!')
                 end
-                
-                if isempty(caArgin) || isempty(caArgin{1})
-                    self.NumChannels = 2;
-                    fprintf('\t==> chosen default number of channels: %i\n', self.NumChannels)
-                else
-                    self.NumChannels = caArgin{1};
-                end
-                
-                if length(caArgin) < 2
-                    self.SampleRate = 44100;
-                    fprintf('\t==> chosen default sample rate: %i Hz\n', self.SampleRate)
-                else
-                    self.SampleRate = caArgin{2};
-                end
-                
-                if length(caArgin) < 3
-                    self.DataType = 'int16';
-                    fprintf('\t==> chosen default datatype: %s\n', self.DataType)
-                else
-                    self.DataType = caArgin{3};
-                end
-                
                 self.iDataOffset = 24;
                 writeHeader(self);
             end
