@@ -21,7 +21,7 @@ function [stInfo, iDataOffset, iDataSize] = au_info(szFilename)
 %   'Comment'           Always empty for au-files.
 %   'Artist'            Always empty for au-files.
 %   'BitsPerSample'     Number of bits per sample in the au-file. Valid
-%                       values are 8,16,24,32, or 64.
+%                       values are 8,16,24,32 or 64.
 %
 %   'Datatype'          Format in which the values should be written. Valid
 %                       strings are int8, int16, int24, int32, float32
