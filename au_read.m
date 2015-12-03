@@ -1,6 +1,6 @@
 function [data, fs, stInfo] = au_read(szFilename, vRange)
 %AU_READ Read the audio data of an au-file.
-%   [DATA, FS] = AU_READ(FILENAME, RANGE) returns the audio data and
+%   [DATA, FS] = AU_READ(FILENAME) returns the audio data and
 %   samplerate of a au-file, which was specified by the string FILENAME.
 %
 %   [DATA, FS] = AU_READ(FILENAME, [START END]) returns only samples START 
@@ -27,27 +27,21 @@ if nargin < 2 || isempty(vRange)
     vRange = [1 Inf];
 end
 
-objAU       = AUFile(szFilename, 'read');
+objAU = AUFile(szFilename, 'read');
 
 if vRange(2) == Inf
     vRange(2) = objAU.TotalSamples;
 end
 
-b1 = any(vRange <= 0);
-b2 = vRange(1) > vRange(2);
-b3 = vRange(2) > objAU.TotalSamples;
-b4 = length(vRange) ~= 2;
-if b1 || b2 || b3 || b4
+bNegative   = any(vRange <= 0);
+bSwapped    = vRange(1) > vRange(2);
+bOutOfRange = vRange(2) > objAU.TotalSamples;
+bWrongSize  = length(vRange) ~= 2;
+if bNegative || bSwapped || bOutOfRange || bWrongSize
     error('Selected range not correct.')
 end
 
 objAU.seek(vRange(1));
-
-
-%% define output
-
 data    = objAU.read( vRange(2)-vRange(1)+1 );
 fs      = objAU.SampleRate;
-warning('off')                  %#ok
-stInfo  = struct(objAU);
-warning('on')                   %#ok
+stInfo  = au_info(szFilename);
