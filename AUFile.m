@@ -59,8 +59,10 @@ classdef AUFile < handle
             stFile      = dir(self.Filename);
             dataSize    = stFile.bytes - self.iDataOffset;
             TotalSamples= dataSize / (self.BitsPerSample/8) / self.NumChannels;
-            
-            self.Duration = TotalSamples/self.SampleRate;
+        end
+        
+        function Duration = get.Duration(self)
+            Duration = self.TotalSamples/self.SampleRate;
         end
         
         function eof = get.eof(self)
