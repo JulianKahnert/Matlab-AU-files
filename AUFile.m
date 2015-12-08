@@ -1,5 +1,7 @@
 classdef AUFile < handle
 % AUFILE is a class to access .au-files.
+%
+% Please have a look at the constructor summary for more information.
     
 %% properties
 
@@ -59,8 +61,10 @@ classdef AUFile < handle
             stFile      = dir(self.Filename);
             dataSize    = stFile.bytes - self.iDataOffset;
             TotalSamples= dataSize / (self.BitsPerSample/8) / self.NumChannels;
-            
-            self.Duration = TotalSamples/self.SampleRate;
+        end
+        
+        function Duration = get.Duration(self)
+            Duration = self.TotalSamples/self.SampleRate;
         end
         
         function eof = get.eof(self)
@@ -74,23 +78,30 @@ classdef AUFile < handle
    
         function self = AUFile(szFilename, szPermission, varargin)
             %AUFILE     class to read and write .au-files.
-            % [OBJ] = AUFILE(FILENAME, PERMISSION, [NUMCHANNELS, FS, DATATYPE]) returns an object
-            % with properties which contain information about a specified au-file.
-            %
-            % FILENAME is a string that specifies the name of the audio file, it can be absolute,
-            % relative, or partial. 
-            %
+            % [OBJ] = AUFILE(FILENAME, PERMISSION) returns an object
+            % with properties which contain information about a specified
+            % au-file.
+            % FILENAME is a string that specifies the name of the audio file,
+            % it can be absolute, relative, or partial.
             % PERMISSION allows different input arguments:
-            %   * 'n' or 'new'      : write a new file, discard existing content
-            %   * 'r' or 'read'     : read permission
+            %   * 'n' or 'new'      : write new file, discard existing content
+            %   * 'r' or 'read'     : read only
             %   * 'rw'or 'readwrite': read and write permission
-            %   * 'a' or 'append'   : read and write permission, seek to eof and append data
-            %   * 'x' or 'xnew'     : write a new file, discard existing content and show error if file already exists
+            %   * 'a' or 'append'   : read and write permission, append data
+            %   * 'x' or 'xnew'     : write a new file, show error if file
+            %                         already exists
             %
-            % NUMCHANNELS number of channels (default: 2)
+            % [OBJ] = AUFILE(FILENAME, PERMISSION, NUMCHANNELS) also specifies
+            % the number of channels (default: 2), if PERMISSION allows you to
+            % generate a new file.
             %
-            % FS samplerate (default: 44100)
+            % [OBJ] = AUFILE(FILENAME, PERMISSION, NUMCHANNELS, FS) also
+            % specifies the samplerate (default: 44100), if PERMISSION allows
+            % you to generate a new file.
             %
+            % [OBJ] = AUFILE(FILENAME, PERMISSION, NUMCHANNELS, FS, DATATYPE)
+            % also specifies the datatype (default: 'int16'), if PERMISSION
+            % allows you to generate a new file.
             % DATATYPE datatype of data (default: 'int16'), also possible:
             %   * 'int8'
             %   * 'int16'
@@ -99,9 +110,9 @@ classdef AUFile < handle
             %   * 'float32'
             %   * 'float64'
             %
-            % IMPORTANT: If the au-file already exists, NUMCHANNELS, FS and
-            % DATATYPE will be overwritte with the properties from the
-            % file.
+            % IMPORTANT: If the au-file already exists and PERMISSION is not
+            % 'new' oder 'xnew', NUMCHANNELS, FS and DATATYPE will be
+            % overwritte with the properties from the file.
             %
             % Usage:
             %   objAU = AUFile('testfile.au', 'read')
@@ -181,7 +192,7 @@ classdef AUFile < handle
       
         function seek(self, iSample, szOrigin)
             % SEEK  moves the current position to a specified position.
-            % [] = seek(SAMPLE[, ORIGIN]) sets the position in the data to
+            % seek(SAMPLE[, ORIGIN]) sets the position in the data to
             % SAMPLE, with respect to ORIGIN.
             % If ORIGIN is not specified, it is set to 'bof'.
             %
