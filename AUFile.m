@@ -1,5 +1,7 @@
 classdef AUFile < handle
 % AUFILE is a class to access .au-files.
+%
+% Please have a look at the constructor summary for more information.
     
 %% properties
 
